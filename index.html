@@ -220,13 +220,15 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 .saved-job select { width: 100%; margin-top: 9px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--site-on-background); }
 .saved-job button { margin-top: 9px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--site-on-background); cursor: pointer; }
 @media (max-width: 850px) { .saved-jobs { grid-template-columns: 1fr; } }
+.profile-panel { margin: 0 0 42px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--border); border-radius: calc(18px * var(--site-radius-scale)); background: var(--surface); }
+.profile-summary { margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--surface-soft); color: var(--site-on-background); font-size: .9rem; line-height: 1.65; overflow-wrap: anywhere; }
 </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
     <a class="brand" href="#inicio" aria-label="Viva USA início" style="text-decoration:none">Viva <span>USA</span></a>
-    <nav aria-label="Navegação principal"><a href="#painel">Painel</a><a href="#servicos">Início</a><a href="#assistencia">Assistência</a><a href="#guia">Guia de chegada</a><a href="#diretorio-local">Serviços locais</a><a href="#comparador">Custo de vida</a><a href="#busca-imoveis">Buscar imóveis</a><a href="#emprego">Empregos</a><a href="#educacao">Cursos e escolas</a><a href="#sobre">Sobre o projeto</a></nav>
+    <nav aria-label="Navegação principal"><a href="#meu-perfil">Meu perfil</a><a href="#painel">Painel</a><a href="#servicos">Início</a><a href="#assistencia">Assistência</a><a href="#guia">Guia de chegada</a><a href="#diretorio-local">Serviços locais</a><a href="#comparador">Custo de vida</a><a href="#busca-imoveis">Buscar imóveis</a><a href="#emprego">Empregos</a><a href="#educacao">Cursos e escolas</a><a href="#sobre">Sobre o projeto</a></nav>
   </header>
   <section class="hero" id="inicio">
     <div class="hero-inner">
@@ -248,6 +250,24 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
         <a class="dashboard-card" href="#organizador-vagas"><span class="dashboard-icon">💼</span><strong>Vagas salvas</strong><b id="dashboardJobs">0</b><small>Acompanhar candidaturas e entrevistas</small></a>
       </div>
       <p class="dashboard-note">Seus números e listas ficam salvos neste navegador e dispositivo. Ainda não existe login nem sincronização entre computadores ou celulares.</p>
+    </section>
+    <section class="profile-panel" id="meu-perfil">
+      <div class="eyebrow" style="color:#B17A1D">Seu planejamento</div>
+      <h2 class="section-heading">Meu perfil de planejamento</h2>
+      <p class="lead">Personalize sua experiência no Viva USA. Preencha apenas o que desejar; não informe documentos, SSN, senhas ou dados bancários.</p>
+      <div class="form-panel" style="margin-top:18px">
+        <div class="form-grid">
+          <label class="field" for="profileName">Como gostaria de ser chamado(a)?<input id="profileName" type="text" maxlength="60" placeholder="Nome ou apelido (opcional)"></label>
+          <label class="field" for="profileCity">Cidade de interesse<select id="profileCity"><option value="">Ainda não decidi</option><option>Orlando</option><option>Winter Garden</option><option>Tampa</option><option>Kissimmee</option><option>Clermont</option><option>Outra cidade da Flórida</option><option>Outro estado</option></select></label>
+          <label class="field" for="profileLanguage">Idioma preferido<select id="profileLanguage"><option>Português</option><option>English</option><option>Español</option></select></label>
+          <label class="field" for="profileStage">Em que fase você está?<select id="profileStage"><option>Pesquisando antes de mudar</option><option>Preparando a mudança</option><option>Acabei de chegar aos EUA</option><option>Já moro nos EUA</option><option>Planejando mudar de estado</option></select></label>
+          <label class="field full" for="profileGoal">Qual é sua prioridade agora?<select id="profileGoal"><option>Moradia</option><option>Emprego</option><option>Documentos e serviços básicos</option><option>Inglês e educação</option><option>Organizar o custo de vida</option><option>Conhecer serviços locais</option><option>Um pouco de tudo</option></select></label>
+          <label class="field full" for="profileNotes">Observações do meu planejamento (opcional)<textarea id="profileNotes" rows="3" maxlength="1000" placeholder="Anote metas e próximos passos. Evite informações confidenciais."></textarea></label>
+        </div>
+        <div class="calc-actions"><button class="button" id="saveProfile" type="button">Salvar meu perfil</button><button class="secondary-button" id="clearProfile" type="button">Apagar perfil deste dispositivo</button><span id="profileStatus" class="calc-note" role="status" aria-live="polite"></span></div>
+        <div class="profile-summary" id="profileSummary" aria-live="polite">Seu perfil ainda não foi preenchido.</div>
+      </div>
+      <p class="dashboard-note">Atenção: este perfil é apenas local, salvo neste navegador. Não cria conta, não usa senha e não fica disponível para a equipe Viva USA. Para contas reais com login, recuperação de senha e sincronização, será necessário configurar um serviço de autenticação e banco de dados seguro.</p>
     </section>
     <h2 class="section-heading">Sua vida nos EUA, passo a passo</h2>
     <p class="lead">Conte com informações claras para entender os primeiros passos, comparar opções e tomar decisões com mais segurança.</p>
@@ -577,6 +597,35 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   <footer class="footer">© 2026 Viva USA · Informação e orientação para sua jornada nos Estados Unidos.</footer>
 </div>
 <script>
+const profileStorageKey = "vivaUSA_profile_v1";
+const profileFields = ["profileName", "profileCity", "profileLanguage", "profileStage", "profileGoal", "profileNotes"];
+function renderProfileSummary(profile) {
+  const summary = document.getElementById("profileSummary");
+  const name = profile.profileName ? "Olá, " + profile.profileName + "!" : "Seu planejamento Viva USA";
+  const details = [["Cidade de interesse", profile.profileCity], ["Idioma", profile.profileLanguage], ["Fase", profile.profileStage], ["Prioridade", profile.profileGoal], ["Observações", profile.profileNotes]];
+  summary.replaceChildren();
+  const heading = document.createElement("strong"); heading.textContent = name; summary.append(heading);
+  details.forEach(([label, value]) => { if (!value) return; const line = document.createElement("div"); line.textContent = label + ": " + value; summary.append(line); });
+}
+function saveProfileData() {
+  const profile = Object.fromEntries(profileFields.map(id => [id, document.getElementById(id).value.trim()]));
+  try { localStorage.setItem(profileStorageKey, JSON.stringify(profile)); renderProfileSummary(profile); document.getElementById("profileStatus").textContent = "Perfil salvo neste navegador."; }
+  catch (error) { document.getElementById("profileStatus").textContent = "Não foi possível salvar. Verifique as configurações do navegador."; }
+}
+function loadProfileData() {
+  try {
+    const profile = JSON.parse(localStorage.getItem(profileStorageKey) || "null");
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)) return;
+    profileFields.forEach(id => { if (typeof profile[id] === "string") document.getElementById(id).value = profile[id]; });
+    renderProfileSummary(profile);
+  } catch (error) { /* O formulário continua disponível sem dados salvos. */ }
+}
+document.getElementById("saveProfile").addEventListener("click", saveProfileData);
+document.getElementById("clearProfile").addEventListener("click", () => {
+  try { localStorage.removeItem(profileStorageKey); profileFields.forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("profileLanguage").value = "Português"; document.getElementById("profileStage").value = "Pesquisando antes de mudar"; document.getElementById("profileGoal").value = "Moradia"; document.getElementById("profileStatus").textContent = "Perfil apagado deste dispositivo."; renderProfileSummary({}); }
+  catch (error) { document.getElementById("profileStatus").textContent = "Não foi possível apagar os dados."; }
+});
+loadProfileData();
 const rentReference = {
   "Orlando": { "1": 1575, "2": 1880, "3": 2238 },
   "Winter Garden": { "1": 1726, "2": 2140, "3": 2634 },
