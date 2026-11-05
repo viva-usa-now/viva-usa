@@ -251,6 +251,23 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
       </div>
       <p class="dashboard-note">Seus números e listas ficam salvos neste navegador e dispositivo. Ainda não existe login nem sincronização entre computadores ou celulares.</p>
     </section>
+    <section class="profile-panel" id="conta-vivausa">
+      <div class="eyebrow" style="color:#B17A1D">Acesso pessoal</div>
+      <h2 class="section-heading">Minha conta Viva USA</h2>
+      <p class="lead">Crie sua conta para preparar o acesso ao seu planejamento em diferentes dispositivos. Use um e-mail válido e uma senha exclusiva.</p>
+      <div class="form-panel" style="margin-top:18px">
+        <div class="form-grid">
+          <label class="field" for="accountEmail">E-mail<input id="accountEmail" type="email" autocomplete="email" placeholder="seuemail@exemplo.com"></label>
+          <label class="field" for="accountPassword">Senha (mínimo de 8 caracteres)<input id="accountPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Crie uma senha"></label>
+        </div>
+        <div class="button-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+          <button class="button button-primary" id="accountSignup" type="button">Criar conta</button>
+          <button class="button button-secondary" id="accountLogin" type="button">Entrar</button>
+          <button class="button button-secondary" id="accountLogout" type="button" hidden>Sair</button>
+        </div>
+        <p id="accountStatus" class="dashboard-note" role="status" aria-live="polite">Conectando ao serviço de contas...</p>
+      </div>
+    </section>
     <section class="profile-panel" id="meu-perfil">
       <div class="eyebrow" style="color:#B17A1D">Seu planejamento</div>
       <h2 class="section-heading">Meu perfil de planejamento</h2>
@@ -596,7 +613,57 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   </main>
   <footer class="footer">© 2026 Viva USA · Informação e orientação para sua jornada nos Estados Unidos.</footer>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = "https://qykzfalkmsanwazwuiuh.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_xRfowICXCh0LuU199NMFVw_Xs8dyFCe";
+const supabaseClient = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+const accountStatus = document.getElementById("accountStatus");
+const accountSignup = document.getElementById("accountSignup");
+const accountLogin = document.getElementById("accountLogin");
+const accountLogout = document.getElementById("accountLogout");
+function showAccountStatus(message) { if (accountStatus) accountStatus.textContent = message; }
+function setAccountState(user) {
+  const email = user?.email || "";
+  showAccountStatus(user ? "Conectado como " + email + ". A conta está ativa neste dispositivo." : "Você ainda não entrou na sua conta.");
+  if (accountSignup) accountSignup.hidden = !!user;
+  if (accountLogin) accountLogin.hidden = !!user;
+  if (accountLogout) accountLogout.hidden = !user;
+}
+if (!supabaseClient) {
+  showAccountStatus("Não foi possível carregar o serviço de contas. Atualize a página e tente novamente.");
+} else {
+  supabaseClient.auth.getSession().then(({data, error}) => {
+    if (error) showAccountStatus("Não foi possível verificar a sessão. " + error.message);
+    else setAccountState(data.session?.user || null);
+  });
+  supabaseClient.auth.onAuthStateChange((_event, session) => setAccountState(session?.user || null));
+  accountSignup?.addEventListener("click", async () => {
+    const email = document.getElementById("accountEmail").value.trim();
+    const password = document.getElementById("accountPassword").value;
+    if (!email || password.length < 8) { showAccountStatus("Informe um e-mail válido e uma senha com pelo menos 8 caracteres."); return; }
+    accountSignup.disabled = true;
+    showAccountStatus("Criando sua conta...");
+    const {data, error} = await supabaseClient.auth.signUp({email, password, options:{emailRedirectTo: location.origin + location.pathname}});
+    accountSignup.disabled = false;
+    if (error) showAccountStatus("Não foi possível criar a conta: " + error.message);
+    else if (data.session) showAccountStatus("Conta criada e acesso iniciado.");
+    else showAccountStatus("Cadastro iniciado! Verifique seu e-mail e clique no link de confirmação para ativar o acesso.");
+  });
+  accountLogin?.addEventListener("click", async () => {
+    const email = document.getElementById("accountEmail").value.trim();
+    const password = document.getElementById("accountPassword").value;
+    if (!email || !password) { showAccountStatus("Informe seu e-mail e sua senha."); return; }
+    accountLogin.disabled = true;
+    const {error} = await supabaseClient.auth.signInWithPassword({email, password});
+    accountLogin.disabled = false;
+    showAccountStatus(error ? "Não foi possível entrar: " + error.message : "Login realizado.");
+  });
+  accountLogout?.addEventListener("click", async () => {
+    const {error} = await supabaseClient.auth.signOut();
+    showAccountStatus(error ? "Não foi possível sair: " + error.message : "Você saiu da sua conta.");
+  });
+}
 const profileStorageKey = "vivaUSA_profile_v1";
 const profileFields = ["profileName", "profileCity", "profileLanguage", "profileStage", "profileGoal", "profileNotes"];
 function renderProfileSummary(profile) {
