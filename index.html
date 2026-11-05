@@ -1119,6 +1119,7 @@ async function loadCloudData(user) {
     await syncCloudData();
     showAccountStatus("Conectado como "+user.email+". Seus dados estão sincronizados com sua conta.");
   } catch(error) {
+    cloudDataLoadedFor = "";
     showAccountStatus("Conta conectada, mas houve um problema ao carregar os dados: "+error.message);
   }
 }
