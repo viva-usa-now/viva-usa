@@ -146,6 +146,15 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 .learning-search { margin-top: 42px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--border); border-radius: calc(18px * var(--site-radius-scale)); background: var(--surface); }
 .learning-organizer { margin-top: 24px; padding: clamp(18px, 3vw, 26px); border: 1px solid var(--border); border-radius: 12px; background: var(--surface-soft); }
 .saved-courses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.service-organizer { margin-top: 24px; padding: clamp(18px, 3vw, 26px); border: 1px solid var(--border); border-radius: 12px; background: var(--surface-soft); }
+.saved-providers { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.saved-provider { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.saved-provider h4 { margin: 0 0 8px; }
+.saved-provider p { margin: 5px 0; color: var(--text-muted); font-size: .86rem; line-height: 1.5; overflow-wrap: anywhere; }
+.saved-provider a { color: var(--site-primary); font-size: .86rem; font-weight: 750; }
+.saved-provider select { width: 100%; margin-top: 8px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--site-on-background); }
+.saved-provider button { margin: 9px 0 0 10px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--site-on-background); cursor: pointer; }
+@media (max-width: 850px) { .saved-providers { grid-template-columns: 1fr; } }
 .saved-course { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
 .saved-course h4 { margin: 0 0 8px; }
 .saved-course p { margin: 5px 0; color: var(--text-muted); font-size: .86rem; line-height: 1.5; overflow-wrap: anywhere; }
@@ -494,6 +503,23 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
         </div>
         <textarea id="requestOutput" class="request-output" aria-label="Resumo do pedido de assistência" placeholder="O resumo do seu pedido aparecerá aqui. Você poderá editar e copiar."></textarea>
       </div>
+      <div class="comparison service-organizer" id="organizador-servicos">
+        <h3>Meu organizador de serviços</h3>
+        <p class="calc-note">Registre empresas, profissionais e serviços que encontrou para sua mudança. Compare preços, guarde links e acompanhe seus contatos. Esta lista é privada apenas no sentido de ficar salva neste navegador: não é uma conta protegida nem sincronizada.</p>
+        <div class="form-grid">
+          <label class="field" for="providerName">Empresa ou prestador<input id="providerName" type="text" maxlength="120" placeholder="Nome da empresa ou profissional"></label>
+          <label class="field" for="providerCategory">Categoria<select id="providerCategory"><option>Moradia</option><option>Transporte</option><option>Seguro</option><option>Internet e telefone</option><option>Documentação e tradução</option><option>Educação</option><option>Saúde</option><option>Serviços domésticos</option><option>Outro</option></select></label>
+          <label class="field" for="providerCity">Cidade<input id="providerCity" type="text" maxlength="80" placeholder="Ex.: Winter Garden"></label>
+          <label class="field" for="providerPrice">Preço ou orçamento (US$)<input id="providerPrice" type="number" min="0" step="0.01" placeholder="Ex.: 120"></label>
+          <label class="field" for="providerStatus">Andamento<select id="providerStatus"><option>Para avaliar</option><option>Contato realizado</option><option>Orçamento recebido</option><option>Contratado</option><option>Não escolhido</option></select></label>
+          <label class="field" for="providerContact">Contato (opcional)<input id="providerContact" type="text" maxlength="160" placeholder="Telefone ou e-mail comercial"></label>
+          <label class="field full" for="providerUrl">Site ou anúncio (opcional)<input id="providerUrl" type="url" placeholder="https://"></label>
+          <label class="field full" for="providerNotes">Observações<textarea id="providerNotes" rows="3" maxlength="1000" placeholder="Serviço oferecido, condições, data do orçamento..."></textarea></label>
+        </div>
+        <div class="calc-actions"><button class="button" id="saveProvider" type="button">Salvar serviço</button><span id="providerStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
+        <div id="savedProviders" class="saved-providers" aria-live="polite"><p class="calc-note">Nenhum serviço salvo ainda.</p></div>
+        <p class="calc-note">Antes de contratar, confirme identidade, licença quando aplicável, contrato, preço total e avaliações independentes. Não guarde senhas, SSN ou números de documentos.</p>
+      </div>
       <p class="calc-note">Importante: o catálogo de assistência paga representa serviços planejados, ainda não disponíveis para contratação neste site. O Viva USA não oferece aconselhamento jurídico, imigração, fiscal ou médico, nem garante aprovação de aluguel, emprego ou benefícios.</p>
     </section>
     <section class="about" id="sobre" style="padding-top:58px">
@@ -789,6 +815,53 @@ document.getElementById("saveCourse").addEventListener("click", () => {
   document.getElementById("courseStatus").value = "Quero pesquisar";
 });
 renderSavedCourses();
+const providerStorageKey = "vivaUSA_saved_providers_v1";
+let savedProviders = [];
+function renderSavedProviders() {
+  const container = document.getElementById("savedProviders");
+  if (!savedProviders.length) { container.innerHTML = '<p class="calc-note">Nenhum serviço salvo ainda.</p>'; return; }
+  container.replaceChildren();
+  savedProviders.forEach((provider, index) => {
+    const card = document.createElement("article"); card.className = "saved-provider";
+    const title = document.createElement("h4"); title.textContent = provider.name;
+    const details = document.createElement("p");
+    details.textContent = [provider.category, provider.city, provider.price ? formatMoney(provider.price) : "Preço a confirmar"].filter(Boolean).join(" · ");
+    const contact = document.createElement("p"); contact.textContent = provider.contact ? "Contato: " + provider.contact : "Contato não informado";
+    const notes = document.createElement("p"); notes.textContent = provider.notes || "Sem observações.";
+    const status = document.createElement("select"); status.setAttribute("aria-label", "Andamento de " + provider.name);
+    ["Para avaliar", "Contato realizado", "Orçamento recebido", "Contratado", "Não escolhido"].forEach(value => { const option = document.createElement("option"); option.value = value; option.textContent = value; status.append(option); });
+    status.value = provider.status;
+    status.addEventListener("change", () => { savedProviders[index].status = status.value; persistSavedProviders("Andamento atualizado."); });
+    card.append(title, details, contact);
+    if (provider.url) { const link = document.createElement("a"); link.href = provider.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir site ou anúncio"; card.append(link); }
+    card.append(notes, status);
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedProviders.splice(index, 1); persistSavedProviders("Serviço removido."); });
+    card.append(remove); container.append(card);
+  });
+}
+function persistSavedProviders(message) {
+  try { localStorage.setItem(providerStorageKey, JSON.stringify(savedProviders)); document.getElementById("providerStatusMessage").textContent = message + " Salvo neste dispositivo."; }
+  catch (error) { document.getElementById("providerStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
+  renderSavedProviders();
+}
+try {
+  const storedProviders = JSON.parse(localStorage.getItem(providerStorageKey) || "[]");
+  if (Array.isArray(storedProviders)) savedProviders = storedProviders.filter(item => item && typeof item.name === "string" && ["Para avaliar", "Contato realizado", "Orçamento recebido", "Contratado", "Não escolhido"].includes(item.status) && (!item.url || item.url.startsWith("https://")));
+} catch (error) { savedProviders = []; }
+document.getElementById("saveProvider").addEventListener("click", () => {
+  const name = document.getElementById("providerName").value.trim();
+  const url = document.getElementById("providerUrl").value.trim();
+  const priceText = document.getElementById("providerPrice").value;
+  const price = Number(priceText);
+  if (!name) { document.getElementById("providerStatusMessage").textContent = "Informe a empresa ou o prestador."; return; }
+  if (priceText && (!Number.isFinite(price) || price < 0)) { document.getElementById("providerStatusMessage").textContent = "Confira o preço informado."; return; }
+  if (url && !/^https:\/\//i.test(url)) { document.getElementById("providerStatusMessage").textContent = "O link deve começar com https://."; return; }
+  savedProviders.push({name, category:document.getElementById("providerCategory").value, city:document.getElementById("providerCity").value.trim(), price:priceText ? price : 0, status:document.getElementById("providerStatus").value, contact:document.getElementById("providerContact").value.trim(), url, notes:document.getElementById("providerNotes").value.trim()});
+  persistSavedProviders("Serviço adicionado.");
+  ["providerName", "providerCity", "providerPrice", "providerContact", "providerUrl", "providerNotes"].forEach(id => { document.getElementById(id).value = ""; });
+  document.getElementById("providerStatus").value = "Para avaliar";
+});
+renderSavedProviders();
 calculateBudget();
 updateArrivalChecklist();
 calculateMoveIn();
