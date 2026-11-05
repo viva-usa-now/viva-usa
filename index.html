@@ -1229,10 +1229,11 @@ async function loadCloudData(user) {
 }
 async function syncCloudData() {
   if (!supabaseClient || cloudSyncBusy) { cloudSyncQueued = true; return; }
-  const {data:{session}} = await supabaseClient.auth.getSession();
-  const user=session?.user;
-  if (!user) return;
-  cloudSyncBusy=true;
+ 
+const {data:{session}} = await supabaseClient.auth.getSession();
+const user = session?.user;
+if (!user || cloudDataLoadedFor !== user.id) return;
+cloudSyncBusy = true;
   try {
     const specs=[
       ["saved_rentals",savedRentals,x=>({user_id:user.id,property_name:x.name,city:x.city,bedrooms:x.beds,monthly_rent:x.price,listing_url:x.url,notes:x.notes})],
