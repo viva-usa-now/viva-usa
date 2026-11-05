@@ -693,7 +693,7 @@ document.getElementById("clearProfile").addEventListener("click", () => {
   try { localStorage.removeItem(profileStorageKey); profileFields.forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("profileLanguage").value = "Português"; document.getElementById("profileStage").value = "Pesquisando antes de mudar"; document.getElementById("profileGoal").value = "Moradia"; document.getElementById("profileStatus").textContent = "Perfil apagado deste dispositivo."; renderProfileSummary({}); syncCloudData(); }
   catch (error) { document.getElementById("profileStatus").textContent = "Não foi possível apagar os dados."; }
 });
-loadProfileData();
+// loadProfileData();
 const rentReference = {
   "Orlando": { "1": 1575, "2": 1880, "3": 2238 },
   "Winter Garden": { "1": 1726, "2": 2140, "3": 2634 },
