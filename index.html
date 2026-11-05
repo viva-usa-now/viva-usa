@@ -144,6 +144,15 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 .job-search-links a { display: inline-flex; align-items: center; min-height: 42px; padding: 9px 13px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); color: var(--site-primary); font-size: .86rem; font-weight: 750; text-decoration: none; }
 .job-search-note { margin: 14px 0 0; color: var(--text-muted); font-size: .8rem; line-height: 1.6; }
 .learning-search { margin-top: 42px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--border); border-radius: calc(18px * var(--site-radius-scale)); background: var(--surface); }
+.learning-organizer { margin-top: 24px; padding: clamp(18px, 3vw, 26px); border: 1px solid var(--border); border-radius: 12px; background: var(--surface-soft); }
+.saved-courses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.saved-course { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.saved-course h4 { margin: 0 0 8px; }
+.saved-course p { margin: 5px 0; color: var(--text-muted); font-size: .86rem; line-height: 1.5; overflow-wrap: anywhere; }
+.saved-course a { color: var(--site-primary); font-weight: 750; font-size: .86rem; }
+.saved-course select { width: 100%; margin-top: 8px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--site-on-background); }
+.saved-course button { margin: 9px 0 0 10px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--site-on-background); cursor: pointer; }
+@media (max-width: 850px) { .saved-courses { grid-template-columns: 1fr; } }
 .career-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 22px; margin-top: 20px; }
 .resume-preview { width: 100%; min-height: 300px; padding: 15px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); color: var(--site-on-background); font:  .9rem/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; resize: vertical; }
 .career-tips { margin-top: 22px; padding: 18px; border-radius: 12px; background: var(--surface-soft); }
@@ -425,6 +434,23 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
       <div class="official-links">
         <h3>Recursos oficiais para começar</h3>
         <div class="official-link-list"><a href="https://www.floridashines.org/" target="_blank" rel="noopener noreferrer">FloridaShines · planejamento acadêmico</a><a href="https://www.fldoe.org/academics/career-adult-edu/" target="_blank" rel="noopener noreferrer">Educação de adultos e carreira · Flórida</a><a href="https://www.careeronestop.org/" target="_blank" rel="noopener noreferrer">CareerOneStop · ocupações e treinamento</a><a href="https://www.ed.gov/" target="_blank" rel="noopener noreferrer">U.S. Department of Education</a></div>
+      </div>
+      <div class="comparison learning-organizer" id="organizador-cursos">
+        <h3>Minha lista de cursos e escolas</h3>
+        <p class="calc-note">Salve instituições e cursos que deseja comparar. Atualize o andamento e suas observações. Os dados ficam somente neste navegador e dispositivo.</p>
+        <div class="form-grid">
+          <label class="field" for="courseName">Nome do curso ou instituição<input id="courseName" type="text" maxlength="120" placeholder="Ex.: curso de inglês para adultos"></label>
+          <label class="field" for="courseCity">Cidade<input id="courseCity" type="text" maxlength="80" placeholder="Ex.: Orlando"></label>
+          <label class="field" for="coursePrice">Preço estimado (US$)<input id="coursePrice" type="number" min="0" step="0.01" placeholder="Ex.: 500"></label>
+          <label class="field" for="courseDuration">Duração<input id="courseDuration" type="text" maxlength="80" placeholder="Ex.: 12 semanas"></label>
+          <label class="field" for="courseMode">Modalidade<select id="courseMode"><option>Presencial</option><option>Online</option><option>Híbrido</option><option>A confirmar</option></select></label>
+          <label class="field" for="courseStatus">Andamento<select id="courseStatus"><option>Quero pesquisar</option><option>Entrei em contato</option><option>Inscrito</option><option>Concluído</option></select></label>
+          <label class="field full" for="courseUrl">Link oficial do curso (opcional)<input id="courseUrl" type="url" placeholder="https://"></label>
+          <label class="field full" for="courseNotes">Observações<textarea id="courseNotes" rows="3" maxlength="1000" placeholder="Horários, requisitos, documentos, contato..."></textarea></label>
+        </div>
+        <div class="calc-actions"><button class="button" id="saveCourse" type="button">Salvar na minha lista</button><span id="courseStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
+        <div id="savedCourses" class="saved-courses" aria-live="polite"><p class="calc-note">Nenhum curso salvo ainda.</p></div>
+        <p class="calc-note">Privacidade: não salve documentos, número de Social Security, senhas ou informações financeiras. Limpar os dados do navegador pode apagar esta lista.</p>
       </div>
     </section>
     <section class="assistance-section" id="assistencia">
@@ -717,6 +743,52 @@ document.getElementById("copyRequest").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(output.value); status.textContent = "Resumo copiado."; }
   catch (error) { output.focus(); output.select(); status.textContent = "Selecione o texto e copie manualmente."; }
 });
+const courseStorageKey = "vivaUSA_saved_courses_v1";
+let savedCourses = [];
+function renderSavedCourses() {
+  const container = document.getElementById("savedCourses");
+  if (!savedCourses.length) { container.innerHTML = '<p class="calc-note">Nenhum curso salvo ainda.</p>'; return; }
+  container.replaceChildren();
+  savedCourses.forEach((course, index) => {
+    const card = document.createElement("article"); card.className = "saved-course";
+    const title = document.createElement("h4"); title.textContent = course.name;
+    const details = document.createElement("p");
+    details.textContent = [course.city, course.price ? formatMoney(course.price) : "Preço a confirmar", course.duration, course.mode].filter(Boolean).join(" · ");
+    const notes = document.createElement("p"); notes.textContent = course.notes || "Sem observações.";
+    const status = document.createElement("select"); status.setAttribute("aria-label", "Andamento de " + course.name);
+    ["Quero pesquisar", "Entrei em contato", "Inscrito", "Concluído"].forEach(value => { const option = document.createElement("option"); option.value = value; option.textContent = value; status.append(option); });
+    status.value = course.status;
+    status.addEventListener("change", () => { savedCourses[index].status = status.value; persistSavedCourses("Andamento atualizado."); });
+    card.append(title, details);
+    if (course.url) { const link = document.createElement("a"); link.href = course.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir página do curso"; card.append(link); }
+    card.append(notes, status);
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedCourses.splice(index, 1); persistSavedCourses("Curso removido."); });
+    card.append(remove); container.append(card);
+  });
+}
+function persistSavedCourses(message) {
+  try { localStorage.setItem(courseStorageKey, JSON.stringify(savedCourses)); document.getElementById("courseStatusMessage").textContent = message + " Salvo neste dispositivo."; }
+  catch (error) { document.getElementById("courseStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
+  renderSavedCourses();
+}
+try {
+  const storedCourses = JSON.parse(localStorage.getItem(courseStorageKey) || "[]");
+  if (Array.isArray(storedCourses)) savedCourses = storedCourses.filter(item => item && typeof item.name === "string" && ["Quero pesquisar", "Entrei em contato", "Inscrito", "Concluído"].includes(item.status) && (!item.url || item.url.startsWith("https://")));
+} catch (error) { savedCourses = []; }
+document.getElementById("saveCourse").addEventListener("click", () => {
+  const name = document.getElementById("courseName").value.trim();
+  const url = document.getElementById("courseUrl").value.trim();
+  const priceText = document.getElementById("coursePrice").value;
+  const price = Number(priceText);
+  if (!name) { document.getElementById("courseStatusMessage").textContent = "Informe o nome do curso ou da instituição."; return; }
+  if (priceText && (!Number.isFinite(price) || price < 0)) { document.getElementById("courseStatusMessage").textContent = "Confira o preço informado."; return; }
+  if (url && !/^https:\/\//i.test(url)) { document.getElementById("courseStatusMessage").textContent = "O link deve começar com https://."; return; }
+  savedCourses.push({name, city:document.getElementById("courseCity").value.trim(), price:priceText ? price : 0, duration:document.getElementById("courseDuration").value.trim(), mode:document.getElementById("courseMode").value, status:document.getElementById("courseStatus").value, url, notes:document.getElementById("courseNotes").value.trim()});
+  persistSavedCourses("Curso adicionado.");
+  ["courseName", "courseCity", "coursePrice", "courseDuration", "courseUrl", "courseNotes"].forEach(id => { document.getElementById(id).value = ""; });
+  document.getElementById("courseStatus").value = "Quero pesquisar";
+});
+renderSavedCourses();
 calculateBudget();
 updateArrivalChecklist();
 calculateMoveIn();
