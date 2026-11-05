@@ -629,6 +629,7 @@ function setAccountState(user) {
   if (accountSignup) accountSignup.hidden = !!user;
   if (accountLogin) accountLogin.hidden = !!user;
   if (accountLogout) accountLogout.hidden = !user;
+  if (user) Promise.resolve().then(() => loadCloudData(user));
 }
 if (!supabaseClient) {
   showAccountStatus("Não foi possível carregar o serviço de contas. Atualize a página e tente novamente.");
@@ -676,7 +677,7 @@ function renderProfileSummary(profile) {
 }
 function saveProfileData() {
   const profile = Object.fromEntries(profileFields.map(id => [id, document.getElementById(id).value.trim()]));
-  try { localStorage.setItem(profileStorageKey, JSON.stringify(profile)); renderProfileSummary(profile); document.getElementById("profileStatus").textContent = "Perfil salvo neste navegador."; }
+  try { localStorage.setItem(profileStorageKey, JSON.stringify(profile)); renderProfileSummary(profile); document.getElementById("profileStatus").textContent = "Perfil salvo neste navegador."; syncCloudData(); }
   catch (error) { document.getElementById("profileStatus").textContent = "Não foi possível salvar. Verifique as configurações do navegador."; }
 }
 function loadProfileData() {
@@ -689,7 +690,7 @@ function loadProfileData() {
 }
 document.getElementById("saveProfile").addEventListener("click", saveProfileData);
 document.getElementById("clearProfile").addEventListener("click", () => {
-  try { localStorage.removeItem(profileStorageKey); profileFields.forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("profileLanguage").value = "Português"; document.getElementById("profileStage").value = "Pesquisando antes de mudar"; document.getElementById("profileGoal").value = "Moradia"; document.getElementById("profileStatus").textContent = "Perfil apagado deste dispositivo."; renderProfileSummary({}); }
+  try { localStorage.removeItem(profileStorageKey); profileFields.forEach(id => { document.getElementById(id).value = ""; }); document.getElementById("profileLanguage").value = "Português"; document.getElementById("profileStage").value = "Pesquisando antes de mudar"; document.getElementById("profileGoal").value = "Moradia"; document.getElementById("profileStatus").textContent = "Perfil apagado deste dispositivo."; renderProfileSummary({}); syncCloudData(); }
   catch (error) { document.getElementById("profileStatus").textContent = "Não foi possível apagar os dados."; }
 });
 loadProfileData();
@@ -804,6 +805,7 @@ function persistSavedRentals() {
   catch (error) { document.getElementById("rentalSaveStatus").textContent = "Não foi possível salvar neste navegador."; }
   renderSavedRentals();
   updateDashboardCounts();
+  syncCloudData();
 }
 try { const storedRentals = JSON.parse(localStorage.getItem(rentalStorageKey) || "[]"); if (Array.isArray(storedRentals)) savedRentals = storedRentals.filter(item => item && typeof item.name === "string" && typeof item.url === "string" && item.url.startsWith("https://")); } catch (error) { savedRentals = []; }
 document.getElementById("saveRentalListing").addEventListener("click", () => {
@@ -967,6 +969,7 @@ function persistSavedCourses(message) {
   catch (error) { document.getElementById("courseStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
   renderSavedCourses();
   updateDashboardCounts();
+  syncCloudData();
 }
 try {
   const storedCourses = JSON.parse(localStorage.getItem(courseStorageKey) || "[]");
@@ -1015,6 +1018,7 @@ function persistSavedProviders(message) {
   catch (error) { document.getElementById("providerStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
   renderSavedProviders();
   updateDashboardCounts();
+  syncCloudData();
 }
 try {
   const storedProviders = JSON.parse(localStorage.getItem(providerStorageKey) || "[]");
@@ -1062,6 +1066,7 @@ function persistSavedJobs(message) {
   try { localStorage.setItem(jobStorageKey, JSON.stringify(savedJobs)); document.getElementById("jobSaveStatus").textContent = message + " Salvo neste dispositivo."; }
   catch (error) { document.getElementById("jobSaveStatus").textContent = "Não foi possível salvar neste navegador."; }
   renderSavedJobs();
+  syncCloudData();
 }
 try {
   const storedJobs = JSON.parse(localStorage.getItem(jobStorageKey) || "[]");
@@ -1081,6 +1086,72 @@ document.getElementById("saveJob").addEventListener("click", () => {
   document.getElementById("jobSavedStatus").value = "Quero me candidatar";
 });
 renderSavedJobs();
+
+let cloudSyncBusy = false;
+let cloudSyncQueued = false;
+let cloudDataLoadedFor = "";
+function profileToCloud() {
+  return {display_name:document.getElementById("profileName").value.trim(),city_of_interest:document.getElementById("profileCity").value,preferred_language:document.getElementById("profileLanguage").value,moving_stage:document.getElementById("profileStage").value,priority:document.getElementById("profileGoal").value,notes:document.getElementById("profileNotes").value.trim()};
+}
+async function loadCloudData(user) {
+  if (!supabaseClient || !user || cloudDataLoadedFor === user.id) return;
+  cloudDataLoadedFor = user.id;
+  showAccountStatus("Conta conectada. Carregando seus dados online...");
+  try {
+    const tables = ["saved_rentals","saved_courses","saved_providers","saved_jobs"];
+    const results = await Promise.all(tables.map(table => supabaseClient.from(table).select("*").eq("user_id",user.id)));
+    for (const result of results) if (result.error) throw result.error;
+    const [rentals,courses,providers,jobs] = results.map(result => result.data || []);
+    if (rentals.length) savedRentals = rentals.map(x => ({name:x.property_name || "",city:x.city || "",beds:x.bedrooms || "",price:Number(x.monthly_rent || 0),url:x.listing_url || "",notes:x.notes || ""}));
+    if (courses.length) savedCourses = courses.map(x => ({name:x.course_name || x.institution || "",city:x.city || "",price:Number(x.price || 0),duration:x.duration || "",mode:x.modality || "",status:x.status || "Quero pesquisar",url:x.official_url || "",notes:x.notes || ""}));
+    if (providers.length) savedProviders = providers.map(x => ({name:x.provider_name || "",category:x.category || "",city:x.city || "",price:Number(x.estimated_price || 0),status:x.status || "Para avaliar",contact:x.contact || "",url:x.website_url || "",notes:x.notes || ""}));
+    if (jobs.length) savedJobs = jobs.map(x => ({title:x.job_title || "",company:x.employer || "",city:x.city || "",pay:Number(x.hourly_pay || 0),status:x.application_status || "Quero me candidatar",url:x.listing_url || "",notes:x.notes || ""}));
+    const profileResult = await supabaseClient.from("profiles").select("*").eq("user_id",user.id).maybeSingle();
+    if (profileResult.error) throw profileResult.error;
+    if (profileResult.data) {
+      const p=profileResult.data;
+      const values={profileName:p.display_name || "",profileCity:p.city_of_interest || "",profileLanguage:p.preferred_language || "Português",profileStage:p.moving_stage || "Pesquisando antes de mudar",profileGoal:p.priority || "Moradia",profileNotes:p.notes || ""};
+      profileFields.forEach(id => {document.getElementById(id).value=values[id] || "";});
+      localStorage.setItem(profileStorageKey,JSON.stringify(values)); renderProfileSummary(values);
+    }
+    [ [rentalStorageKey,savedRentals],[courseStorageKey,savedCourses],[providerStorageKey,savedProviders],[jobStorageKey,savedJobs] ].forEach(([key,value])=>localStorage.setItem(key,JSON.stringify(value)));
+    renderSavedRentals(); renderSavedCourses(); renderSavedProviders(); renderSavedJobs(); updateDashboardCounts();
+    await syncCloudData();
+    showAccountStatus("Conectado como "+user.email+". Seus dados estão sincronizados com sua conta.");
+  } catch(error) {
+    showAccountStatus("Conta conectada, mas houve um problema ao carregar os dados: "+error.message);
+  }
+}
+async function syncCloudData() {
+  if (!supabaseClient || cloudSyncBusy) { cloudSyncQueued = true; return; }
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  const user=session?.user;
+  if (!user) return;
+  cloudSyncBusy=true;
+  try {
+    const specs=[
+      ["saved_rentals",savedRentals,x=>({user_id:user.id,property_name:x.name,city:x.city,bedrooms:x.beds,monthly_rent:x.price,listing_url:x.url,notes:x.notes})],
+      ["saved_courses",savedCourses,x=>({user_id:user.id,institution:x.name,course_name:x.name,city:x.city,price:x.price,duration:x.duration,modality:x.mode,status:x.status,official_url:x.url,notes:x.notes})],
+      ["saved_providers",savedProviders,x=>({user_id:user.id,provider_name:x.name,category:x.category,city:x.city,estimated_price:x.price,status:x.status,contact:x.contact,website_url:x.url,notes:x.notes})],
+      ["saved_jobs",savedJobs,x=>({user_id:user.id,job_title:x.title,employer:x.company,city:x.city,hourly_pay:x.pay,application_status:x.status,listing_url:x.url,notes:x.notes})]
+    ];
+    for (const [table,items,map] of specs) {
+      const del=await supabaseClient.from(table).delete().eq("user_id",user.id);
+      if(del.error) throw del.error;
+      if(items.length) {const ins=await supabaseClient.from(table).insert(items.map(map)); if(ins.error) throw ins.error;}
+    }
+    const profile=profileToCloud();
+    const prof=await supabaseClient.from("profiles").upsert({user_id:user.id,...profile},{onConflict:"user_id"});
+    if(prof.error) throw prof.error;
+    showAccountStatus("Conectado como "+user.email+". Seus dados estão sincronizados.");
+  } catch(error) {
+    showAccountStatus("Não foi possível sincronizar seus dados: "+error.message);
+  } finally {
+    cloudSyncBusy=false;
+    if(cloudSyncQueued) {cloudSyncQueued=false; syncCloudData();}
+  }
+}
+
 calculateBudget();
 updateArrivalChecklist();
 calculateMoveIn();
