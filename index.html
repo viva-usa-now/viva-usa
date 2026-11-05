@@ -211,6 +211,15 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 .dashboard-note { margin: 18px 0 0; }
 @media (max-width: 850px) { .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 460px) { .dashboard-grid { grid-template-columns: 1fr; } }
+.job-organizer { margin-top: 24px; }
+.saved-jobs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.saved-job { padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-soft); min-width: 0; }
+.saved-job h4 { margin: 0 0 7px; }
+.saved-job p { margin: 5px 0; color: var(--text-muted); font-size: .86rem; line-height: 1.5; overflow-wrap: anywhere; }
+.saved-job a { color: var(--site-primary); font-size: .86rem; font-weight: 750; }
+.saved-job select { width: 100%; margin-top: 9px; padding: 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--site-on-background); }
+.saved-job button { margin-top: 9px; padding: 6px 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--surface); color: var(--site-on-background); cursor: pointer; }
+@media (max-width: 850px) { .saved-jobs { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -236,7 +245,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
         <a class="dashboard-card" href="#busca-imoveis"><span class="dashboard-icon">🏠</span><strong>Imóveis salvos</strong><b id="dashboardRentals">0</b><small>Comparar anúncios e aluguéis</small></a>
         <a class="dashboard-card" href="#organizador-cursos"><span class="dashboard-icon">🎓</span><strong>Cursos e escolas</strong><b id="dashboardCourses">0</b><small>Instituições na sua lista</small></a>
         <a class="dashboard-card" href="#organizador-servicos"><span class="dashboard-icon">🤝</span><strong>Serviços salvos</strong><b id="dashboardProviders">0</b><small>Empresas e profissionais</small></a>
-        <a class="dashboard-card" href="#pesquisar-vagas"><span class="dashboard-icon">💼</span><strong>Pesquisar empregos</strong><b>→</b><small>Encontrar oportunidades</small></a>
+        <a class="dashboard-card" href="#organizador-vagas"><span class="dashboard-icon">💼</span><strong>Vagas salvas</strong><b id="dashboardJobs">0</b><small>Acompanhar candidaturas e entrevistas</small></a>
       </div>
       <p class="dashboard-note">Seus números e listas ficam salvos neste navegador e dispositivo. Ainda não existe login nem sincronização entre computadores ou celulares.</p>
     </section>
@@ -429,6 +438,22 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
           <a href="https://jobs.myflorida.com/" target="_blank" rel="noopener noreferrer">Empregos do Estado da Flórida</a>
         </div>
         <p class="job-search-note">As pesquisas levam a sites externos; o Viva USA não recebe nem verifica anúncios em tempo real. Confirme se a vaga continua aberta, o salário, o endereço, os requisitos e a legitimidade do empregador diretamente na publicação. Nunca pague para garantir contratação.</p>
+      </div>
+      <div class="comparison job-organizer" id="organizador-vagas">
+        <h3>Minha lista de vagas e candidaturas</h3>
+        <p class="calc-note">Salve oportunidades encontradas, registre o salário e acompanhe cada candidatura até a entrevista ou contratação. O Viva USA não recebe candidaturas; esta é sua lista pessoal neste dispositivo.</p>
+        <div class="form-grid">
+          <label class="field" for="jobSavedTitle">Cargo ou vaga<input id="jobSavedTitle" type="text" maxlength="120" placeholder="Ex.: Dental Assistant"></label>
+          <label class="field" for="jobSavedCompany">Empresa<input id="jobSavedCompany" type="text" maxlength="120" placeholder="Nome do empregador"></label>
+          <label class="field" for="jobSavedCity">Cidade<input id="jobSavedCity" type="text" maxlength="80" placeholder="Ex.: Orlando"></label>
+          <label class="field" for="jobSavedPay">Salário por hora (US$)<input id="jobSavedPay" type="number" min="0" step="0.01" placeholder="Ex.: 20"></label>
+          <label class="field" for="jobSavedStatus">Andamento<select id="jobSavedStatus"><option>Quero me candidatar</option><option>Candidatura enviada</option><option>Entrevista marcada</option><option>Entrevista realizada</option><option>Oferta recebida</option><option>Contratado</option><option>Não selecionado</option></select></label>
+          <label class="field full" for="jobSavedUrl">Link da vaga (opcional)<input id="jobSavedUrl" type="url" placeholder="https://"></label>
+          <label class="field full" for="jobSavedNotes">Observações<textarea id="jobSavedNotes" rows="3" maxlength="1000" placeholder="Data da candidatura, contato, requisitos, próxima etapa..."></textarea></label>
+        </div>
+        <div class="calc-actions"><button class="button" id="saveJob" type="button">Salvar vaga</button><span id="jobSaveStatus" class="calc-note" role="status" aria-live="polite"></span></div>
+        <div id="savedJobs" class="saved-jobs" aria-live="polite"><p class="calc-note">Nenhuma vaga salva ainda.</p></div>
+        <p class="calc-note">Não inclua SSN, senhas, dados bancários ou documentos pessoais. Confira a legitimidade do empregador e nunca pague para participar de processo seletivo.</p>
       </div>
       <div class="career-grid">
         <div class="form-grid">
@@ -698,15 +723,15 @@ const bedroomSelect = document.getElementById("bedrooms");
 const rentInput = document.getElementById("rent");
 const expenseIds = ["rent", "utilities", "food", "transport", "health", "phone", "other"];
 const formatMoney = value => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value);
+function updateDashboardCounts() {
+  const count = (key) => { try { const data = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(data) ? data.length : 0; } catch (error) { return 0; } };
+  const values = [["dashboardRentals", "vivaUSA_saved_rentals_v1"], ["dashboardCourses", "vivaUSA_saved_courses_v1"], ["dashboardProviders", "vivaUSA_saved_providers_v1"], ["dashboardJobs", "vivaUSA_saved_jobs_v1"]];
+  values.forEach(([id, key]) => { const node = document.getElementById(id); if (node) node.textContent = count(key); });
+}
 function updateRentFromReference() {
   const referenceRent = rentReference[citySelect.value][bedroomSelect.value];
   rentInput.value = referenceRent;
-  function updateDashboardCounts() {
-  const count = (key) => { try { const data = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(data) ? data.length : 0; } catch (error) { return 0; } };
-  const values = [["dashboardRentals", "vivaUSA_saved_rentals_v1"], ["dashboardCourses", "vivaUSA_saved_courses_v1"], ["dashboardProviders", "vivaUSA_saved_providers_v1"]];
-  values.forEach(([id, key]) => { const node = document.getElementById(id); if (node) node.textContent = count(key); });
-}
-calculateBudget();
+  calculateBudget();
 }
 function calculateBudget() {
   const total = expenseIds.reduce((sum, id) => {
@@ -893,6 +918,53 @@ document.getElementById("saveProvider").addEventListener("click", () => {
   document.getElementById("providerStatus").value = "Para avaliar";
 });
 renderSavedProviders();
+const jobStorageKey = "vivaUSA_saved_jobs_v1";
+const jobStatuses = ["Quero me candidatar", "Candidatura enviada", "Entrevista marcada", "Entrevista realizada", "Oferta recebida", "Contratado", "Não selecionado"];
+let savedJobs = [];
+function renderSavedJobs() {
+  const container = document.getElementById("savedJobs");
+  container.replaceChildren();
+  if (!savedJobs.length) { const empty = document.createElement("p"); empty.className = "calc-note"; empty.textContent = "Nenhuma vaga salva ainda."; container.appendChild(empty); updateDashboardCounts(); return; }
+  savedJobs.forEach((job, index) => {
+    const card = document.createElement("article"); card.className = "saved-job";
+    const title = document.createElement("h4"); title.textContent = job.title;
+    const details = document.createElement("p"); details.textContent = [job.company, job.city, job.pay ? formatMoney(job.pay) + "/hora" : "Salário a confirmar"].filter(Boolean).join(" · ");
+    const notes = document.createElement("p"); notes.textContent = job.notes || "Sem observações.";
+    card.append(title, details);
+    if (job.url) { const link = document.createElement("a"); link.href = job.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir anúncio da vaga"; card.append(link); }
+    card.append(notes);
+    const status = document.createElement("select"); status.setAttribute("aria-label", "Andamento de " + job.title);
+    jobStatuses.forEach(value => { const option = document.createElement("option"); option.value = value; option.textContent = value; status.append(option); });
+    status.value = job.status;
+    status.addEventListener("change", () => { savedJobs[index].status = status.value; persistSavedJobs("Andamento atualizado."); });
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedJobs.splice(index, 1); persistSavedJobs("Vaga removida."); });
+    card.append(status, remove); container.append(card);
+  });
+  updateDashboardCounts();
+}
+function persistSavedJobs(message) {
+  try { localStorage.setItem(jobStorageKey, JSON.stringify(savedJobs)); document.getElementById("jobSaveStatus").textContent = message + " Salvo neste dispositivo."; }
+  catch (error) { document.getElementById("jobSaveStatus").textContent = "Não foi possível salvar neste navegador."; }
+  renderSavedJobs();
+}
+try {
+  const storedJobs = JSON.parse(localStorage.getItem(jobStorageKey) || "[]");
+  if (Array.isArray(storedJobs)) savedJobs = storedJobs.filter(job => job && typeof job.title === "string" && jobStatuses.includes(job.status) && (!job.url || job.url.startsWith("https://")));
+} catch (error) { savedJobs = []; }
+document.getElementById("saveJob").addEventListener("click", () => {
+  const title = document.getElementById("jobSavedTitle").value.trim();
+  const url = document.getElementById("jobSavedUrl").value.trim();
+  const payText = document.getElementById("jobSavedPay").value;
+  const pay = Number(payText);
+  if (!title) { document.getElementById("jobSaveStatus").textContent = "Informe o cargo ou nome da vaga."; return; }
+  if (payText && (!Number.isFinite(pay) || pay < 0)) { document.getElementById("jobSaveStatus").textContent = "Confira o salário informado."; return; }
+  if (url && !/^https:\/\//i.test(url)) { document.getElementById("jobSaveStatus").textContent = "O link deve começar com https://."; return; }
+  savedJobs.push({title, company:document.getElementById("jobSavedCompany").value.trim(), city:document.getElementById("jobSavedCity").value.trim(), pay:payText ? pay : 0, status:document.getElementById("jobSavedStatus").value, url, notes:document.getElementById("jobSavedNotes").value.trim()});
+  persistSavedJobs("Vaga adicionada.");
+  ["jobSavedTitle", "jobSavedCompany", "jobSavedCity", "jobSavedPay", "jobSavedUrl", "jobSavedNotes"].forEach(id => { document.getElementById(id).value = ""; });
+  document.getElementById("jobSavedStatus").value = "Quero me candidatar";
+});
+renderSavedJobs();
 calculateBudget();
 updateArrivalChecklist();
 calculateMoveIn();
