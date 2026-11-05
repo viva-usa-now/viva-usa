@@ -667,7 +667,7 @@ if (!supabaseClient) {
     showAccountStatus("Não foi possível sair: " + error.message);
     return;
   }
-
+cloudDataLoadedFor = "";
   profileFields.forEach(id => {
     const field = document.getElementById(id);
     if (field) field.value = "";
