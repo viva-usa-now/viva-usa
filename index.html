@@ -661,10 +661,22 @@ if (!supabaseClient) {
     showAccountStatus(error ? "Não foi possível entrar: " + error.message : "Login realizado.");
   });
   accountLogout?.addEventListener("click", async () => {
-    const {error} = await supabaseClient.auth.signOut();
-    showAccountStatus(error ? "Não foi possível sair: " + error.message : "Você saiu da sua conta.");
+  const {error} = await supabaseClient.auth.signOut();
+
+  if (error) {
+    showAccountStatus("Não foi possível sair: " + error.message);
+    return;
+  }
+
+  profileFields.forEach(id => {
+    const field = document.getElementById(id);
+    if (field) field.value = "";
   });
-}
+
+  renderProfileSummary({});
+
+  showAccountStatus("Você saiu da sua conta. O perfil foi ocultado neste dispositivo.");
+});
 const profileStorageKey = "vivaUSA_profile_v1";
 const profileFields = ["profileName", "profileCity", "profileLanguage", "profileStage", "profileGoal", "profileNotes"];
 function renderProfileSummary(profile) {
