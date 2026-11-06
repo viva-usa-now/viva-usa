@@ -542,7 +542,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
           <label class="field full" for="courseUrl">Link oficial do curso (opcional)<input id="courseUrl" type="url" placeholder="https://"></label>
           <label class="field full" for="courseNotes">Observações<textarea id="courseNotes" rows="3" maxlength="1000" placeholder="Horários, requisitos, documentos, contato..."></textarea></label>
         </div>
-        <div class="calc-actions"><button class="button" id="saveCourse" type="button">Salvar na minha lista</button><span id="courseStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
+        <div class="calc-actions"><button class="button" id="saveCourse" type="button">Salvar na minha lista</button><button class="button secondary" id="cancelCourseEdit" type="button" hidden>Cancelar edição</button><span id="courseStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
         <div id="savedCourses" class="saved-courses" aria-live="polite"><p class="calc-note">Nenhum curso salvo ainda.</p></div>
         <p class="calc-note">Privacidade: não salve documentos, número de Social Security, senhas ou informações financeiras. Limpar os dados do navegador pode apagar esta lista.</p>
       </div>
@@ -957,6 +957,32 @@ document.getElementById("copyRequest").addEventListener("click", async () => {
 });
 const courseStorageKey = "vivaUSA_saved_courses_v1";
 let savedCourses = [];
+let editingCourseIndex = null;
+function resetCourseForm() {
+  ["courseName", "courseCity", "coursePrice", "courseDuration", "courseUrl", "courseNotes"].forEach(id => { document.getElementById(id).value = ""; });
+  document.getElementById("courseMode").value = "Presencial";
+  document.getElementById("courseStatus").value = "Quero pesquisar";
+  document.getElementById("saveCourse").textContent = "Salvar na minha lista";
+  document.getElementById("cancelCourseEdit").hidden = true;
+  editingCourseIndex = null;
+}
+function beginCourseEdit(index) {
+  const course = savedCourses[index];
+  if (!course) return;
+  editingCourseIndex = index;
+  document.getElementById("courseName").value = course.name || "";
+  document.getElementById("courseCity").value = course.city || "";
+  document.getElementById("coursePrice").value = course.price || "";
+  document.getElementById("courseDuration").value = course.duration || "";
+  document.getElementById("courseMode").value = course.mode || "A confirmar";
+  document.getElementById("courseStatus").value = course.status || "Quero pesquisar";
+  document.getElementById("courseUrl").value = course.url || "";
+  document.getElementById("courseNotes").value = course.notes || "";
+  document.getElementById("saveCourse").textContent = "Salvar alterações";
+  document.getElementById("cancelCourseEdit").hidden = false;
+  document.getElementById("courseStatusMessage").textContent = "Editando: " + course.name;
+  document.getElementById("courseName").focus();
+}
 function renderSavedCourses() {
   const container = document.getElementById("savedCourses");
   if (!savedCourses.length) { container.innerHTML = '<p class="calc-note">Nenhum curso salvo ainda.</p>'; return; }
@@ -974,8 +1000,15 @@ function renderSavedCourses() {
     card.append(title, details);
     if (course.url) { const link = document.createElement("a"); link.href = course.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir página do curso"; card.append(link); }
     card.append(notes, status);
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_courses", savedCourses[index]); savedCourses.splice(index, 1); persistSavedCourses("Curso removido."); });
-    card.append(remove); container.append(card);
+    const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Editar"; edit.addEventListener("click", () => beginCourseEdit(index));
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => {
+      if (editingCourseIndex === index) resetCourseForm();
+      queueCloudDelete("saved_courses", savedCourses[index]);
+      savedCourses.splice(index, 1);
+      if (editingCourseIndex !== null && editingCourseIndex > index) editingCourseIndex--;
+      persistSavedCourses("Curso removido.");
+    });
+    card.append(edit, remove); container.append(card);
   });
 }
 function persistSavedCourses(message) {
@@ -989,6 +1022,10 @@ try {
   const storedCourses = JSON.parse(localStorage.getItem(courseStorageKey) || "[]");
   if (Array.isArray(storedCourses)) savedCourses = storedCourses.filter(item => item && typeof item.name === "string" && ["Quero pesquisar", "Entrei em contato", "Inscrito", "Concluído"].includes(item.status) && (!item.url || item.url.startsWith("https://")));
 } catch (error) { savedCourses = []; }
+document.getElementById("cancelCourseEdit").addEventListener("click", () => {
+  resetCourseForm();
+  document.getElementById("courseStatusMessage").textContent = "Edição cancelada.";
+});
 document.getElementById("saveCourse").addEventListener("click", () => {
   const name = document.getElementById("courseName").value.trim();
   const url = document.getElementById("courseUrl").value.trim();
@@ -997,10 +1034,23 @@ document.getElementById("saveCourse").addEventListener("click", () => {
   if (!name) { document.getElementById("courseStatusMessage").textContent = "Informe o nome do curso ou da instituição."; return; }
   if (priceText && (!Number.isFinite(price) || price < 0)) { document.getElementById("courseStatusMessage").textContent = "Confira o preço informado."; return; }
   if (url && !/^https:\/\//i.test(url)) { document.getElementById("courseStatusMessage").textContent = "O link deve começar com https://."; return; }
-  savedCourses.push({name, city:document.getElementById("courseCity").value.trim(), price:priceText ? price : 0, duration:document.getElementById("courseDuration").value.trim(), mode:document.getElementById("courseMode").value, status:document.getElementById("courseStatus").value, url, notes:document.getElementById("courseNotes").value.trim()});
-  persistSavedCourses("Curso adicionado.");
-  ["courseName", "courseCity", "coursePrice", "courseDuration", "courseUrl", "courseNotes"].forEach(id => { document.getElementById(id).value = ""; });
-  document.getElementById("courseStatus").value = "Quero pesquisar";
+  const updatedCourse = {
+    ...(editingCourseIndex !== null && savedCourses[editingCourseIndex] ? savedCourses[editingCourseIndex] : {}),
+    name, city:document.getElementById("courseCity").value.trim(),
+    price:priceText ? price : 0,
+    duration:document.getElementById("courseDuration").value.trim(),
+    mode:document.getElementById("courseMode").value,
+    status:document.getElementById("courseStatus").value,
+    url, notes:document.getElementById("courseNotes").value.trim()
+  };
+  if (editingCourseIndex !== null && savedCourses[editingCourseIndex]) {
+    savedCourses[editingCourseIndex] = updatedCourse;
+    persistSavedCourses("Curso atualizado.");
+  } else {
+    savedCourses.push(updatedCourse);
+    persistSavedCourses("Curso adicionado.");
+  }
+  resetCourseForm();
 });
 renderSavedCourses();
 const providerStorageKey = "vivaUSA_saved_providers_v1";
