@@ -429,7 +429,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
       </div>
       <div class="movein" style="margin-top:22px">
         <h3 style="margin:0 0 8px">Salvar um imóvel para comparar</h3>
-        <p class="calc-note">Copie o link do anúncio que encontrou e registre os dados principais. A lista fica salva apenas no navegador e não sincroniza com outros computadores.</p>
+        <p class="calc-note">Registre os dados principais do imóvel. O link do anúncio é opcional. Com sua conta, a lista também pode ser sincronizada.</p>
         <div class="form-grid" style="margin-top:14px">
           <label class="field" for="savedRentalName">Nome ou endereço resumido<input id="savedRentalName" type="text" placeholder="Ex.: Apartamento perto do trabalho"></label>
           <label class="field" for="savedRentalCity">Cidade<input id="savedRentalCity" type="text" placeholder="Orlando, FL"></label>
@@ -808,9 +808,9 @@ function renderSavedRentals() {
     const title = document.createElement("h4"); title.textContent = item.name;
     const details = document.createElement("p"); details.textContent = `${item.city} · ${item.beds || "Quartos não informados"} · ${item.price ? formatMoney(item.price) + "/mês" : "Preço não informado"}`;
     const notes = document.createElement("p"); notes.textContent = item.notes || "Sem observações.";
-    const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir anúncio";
+    if (item.url && /^https:\/\//i.test(item.url)) { const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir anúncio"; card.appendChild(link); }
     const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_rentals", savedRentals[index]); savedRentals.splice(index, 1); persistSavedRentals(); });
-    card.append(title, details, notes, link, remove); container.appendChild(card);
+    card.append(title, details, notes, remove); container.appendChild(card);
   });
 }
 function persistSavedRentals() {
@@ -820,12 +820,13 @@ function persistSavedRentals() {
   updateDashboardCounts();
   syncCloudData();
 }
-try { const storedRentals = JSON.parse(localStorage.getItem(rentalStorageKey) || "[]"); if (Array.isArray(storedRentals)) savedRentals = storedRentals.filter(item => item && typeof item.name === "string" && typeof item.url === "string" && item.url.startsWith("https://")); } catch (error) { savedRentals = []; }
+try { const storedRentals = JSON.parse(localStorage.getItem(rentalStorageKey) || "[]"); if (Array.isArray(storedRentals)) savedRentals = storedRentals.filter(item => item && typeof item.name === "string" && typeof item.url === "string" && (!item.url || /^https:\/\//i.test(item.url))); } catch (error) { savedRentals = []; }
 document.getElementById("saveRentalListing").addEventListener("click", () => {
   const name = document.getElementById("savedRentalName").value.trim();
   const url = document.getElementById("savedRentalUrl").value.trim();
   const price = Number(document.getElementById("savedRentalPrice").value);
-  if (!name || !url || !/^https:\/\//i.test(url)) { document.getElementById("rentalSaveStatus").textContent = "Informe o nome do imóvel e um link seguro começando com https://."; return; }
+  if (!name) { document.getElementById("rentalSaveStatus").textContent = "Informe o nome do imóvel."; return; }
+  if (url && !/^https:\/\//i.test(url)) { document.getElementById("rentalSaveStatus").textContent = "Se informar um link, ele deve começar com https://."; return; }
   if (document.getElementById("savedRentalPrice").value && (!Number.isFinite(price) || price < 0)) { document.getElementById("rentalSaveStatus").textContent = "Confira o valor do aluguel."; return; }
   savedRentals.push({name, url, city:document.getElementById("savedRentalCity").value.trim() || "Cidade não informada", price:price || 0, beds:document.getElementById("savedRentalBeds").value.trim(), notes:document.getElementById("savedRentalNotes").value.trim()});
   persistSavedRentals();
