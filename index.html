@@ -808,7 +808,7 @@ function renderSavedRentals() {
     const details = document.createElement("p"); details.textContent = `${item.city} · ${item.beds || "Quartos não informados"} · ${item.price ? formatMoney(item.price) + "/mês" : "Preço não informado"}`;
     const notes = document.createElement("p"); notes.textContent = item.notes || "Sem observações.";
     const link = document.createElement("a"); link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir anúncio";
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedRentals.splice(index, 1); persistSavedRentals(); });
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_rentals", savedRentals[index]); savedRentals.splice(index, 1); persistSavedRentals(); });
     card.append(title, details, notes, link, remove); container.appendChild(card);
   });
 }
@@ -972,7 +972,7 @@ function renderSavedCourses() {
     card.append(title, details);
     if (course.url) { const link = document.createElement("a"); link.href = course.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir página do curso"; card.append(link); }
     card.append(notes, status);
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedCourses.splice(index, 1); persistSavedCourses("Curso removido."); });
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_courses", savedCourses[index]); savedCourses.splice(index, 1); persistSavedCourses("Curso removido."); });
     card.append(remove); container.append(card);
   });
 }
@@ -1021,7 +1021,7 @@ function renderSavedProviders() {
     card.append(title, details, contact);
     if (provider.url) { const link = document.createElement("a"); link.href = provider.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir site ou anúncio"; card.append(link); }
     card.append(notes, status);
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedProviders.splice(index, 1); persistSavedProviders("Serviço removido."); });
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_providers", savedProviders[index]); savedProviders.splice(index, 1); persistSavedProviders("Serviço removido."); });
     card.append(remove); container.append(card);
   });
 }
@@ -1069,7 +1069,7 @@ function renderSavedJobs() {
     jobStatuses.forEach(value => { const option = document.createElement("option"); option.value = value; option.textContent = value; status.append(option); });
     status.value = job.status;
     status.addEventListener("change", () => { savedJobs[index].status = status.value; persistSavedJobs("Andamento atualizado."); });
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { savedJobs.splice(index, 1); persistSavedJobs("Vaga removida."); });
+    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => { queueCloudDelete("saved_jobs", savedJobs[index]); savedJobs.splice(index, 1); persistSavedJobs("Vaga removida."); });
     card.append(status, remove); container.append(card);
   });
   updateDashboardCounts();
@@ -1102,6 +1102,15 @@ renderSavedJobs();
 let cloudSyncBusy = false;
 let cloudSyncQueued = false;
 let cloudDataLoadedFor = "";
+let pendingCloudDeletes = [];
+
+function queueCloudDelete(table, item) {
+  if (!item || !item.id) return;
+  if (!pendingCloudDeletes.some(entry => entry.table === table && entry.id === item.id)) {
+    pendingCloudDeletes.push({table, id:item.id});
+  }
+}
+
 function profileToCloud() {
   return {display_name:document.getElementById("profileName").value.trim(),city_of_interest:document.getElementById("profileCity").value,preferred_language:document.getElementById("profileLanguage").value,moving_stage:document.getElementById("profileStage").value,priority:document.getElementById("profileGoal").value,notes:document.getElementById("profileNotes").value.trim()};
 }
@@ -1113,97 +1122,54 @@ async function loadCloudData(user) {
 
   try {
     const tables = ["saved_rentals", "saved_courses", "saved_providers", "saved_jobs"];
-
     const results = await Promise.all(
-      tables.map(table =>
-        supabaseClient.from(table).select("*").eq("user_id", user.id)
-      )
+      tables.map(table => supabaseClient.from(table).select("*").eq("user_id", user.id))
     );
-
     for (const result of results) {
       if (result.error) throw result.error;
     }
 
-    const profileResult = await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
+    const profileResult = await supabaseClient.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
     if (profileResult.error) throw profileResult.error;
 
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user?.id !== user.id) return;
 
-    const [rentals, courses, providers, jobs] =
-      results.map(result => result.data || []);
+    const [rentals, courses, providers, jobs] = results.map(result => result.data || []);
 
     savedRentals = rentals.map(x => ({
-      name: x.property_name || "",
-      city: x.city || "",
-      beds: x.bedrooms || "",
-      price: Number(x.monthly_rent || 0),
-      url: x.listing_url || "",
-      notes: x.notes || ""
+      id:x.id, name:x.property_name || "", city:x.city || "", beds:x.bedrooms || "",
+      price:Number(x.monthly_rent || 0), url:x.listing_url || "", notes:x.notes || ""
     }));
-
     savedCourses = courses.map(x => ({
-      name: x.course_name || x.institution || "",
-      city: x.city || "",
-      price: Number(x.price || 0),
-      duration: x.duration || "",
-      mode: x.modality || "",
-      status: x.status || "Quero pesquisar",
-      url: x.official_url || "",
-      notes: x.notes || ""
+      id:x.id, name:x.course_name || x.institution || "", city:x.city || "",
+      price:Number(x.price || 0), duration:x.duration || "", mode:x.modality || "",
+      status:x.status || "Quero pesquisar", url:x.official_url || "", notes:x.notes || ""
     }));
-
     savedProviders = providers.map(x => ({
-      name: x.provider_name || "",
-      category: x.category || "",
-      city: x.city || "",
-      price: Number(x.estimated_price || 0),
-      status: x.status || "Para avaliar",
-      contact: x.contact || "",
-      url: x.website_url || "",
-      notes: x.notes || ""
+      id:x.id, name:x.provider_name || "", category:x.category || "", city:x.city || "",
+      price:Number(x.estimated_price || 0), status:x.status || "Para avaliar",
+      contact:x.contact || "", url:x.website_url || "", notes:x.notes || ""
     }));
-
     savedJobs = jobs.map(x => ({
-      title: x.job_title || "",
-      company: x.employer || "",
-      city: x.city || "",
-      pay: Number(x.hourly_pay || 0),
-      status: x.application_status || "Quero me candidatar",
-      url: x.listing_url || "",
-      notes: x.notes || ""
+      id:x.id, title:x.job_title || "", company:x.employer || "", city:x.city || "",
+      pay:Number(x.hourly_pay || 0), status:x.application_status || "Quero me candidatar",
+      url:x.listing_url || "", notes:x.notes || ""
     }));
 
     const p = profileResult.data || {};
-
     const values = {
-      profileName: p.display_name || "",
-      profileCity: p.city_of_interest || "",
-      profileLanguage: p.preferred_language || "Português",
-      profileStage: p.moving_stage || "Pesquisando antes de mudar",
-      profileGoal: p.priority || "Moradia",
-      profileNotes: p.notes || ""
+      profileName:p.display_name || "", profileCity:p.city_of_interest || "",
+      profileLanguage:p.preferred_language || "Português",
+      profileStage:p.moving_stage || "Pesquisando antes de mudar",
+      profileGoal:p.priority || "Moradia", profileNotes:p.notes || ""
     };
-
-    profileFields.forEach(id => {
-      document.getElementById(id).value = values[id];
-    });
-
+    profileFields.forEach(id => { document.getElementById(id).value = values[id]; });
     localStorage.setItem(profileStorageKey, JSON.stringify(values));
-
     [
-      [rentalStorageKey, savedRentals],
-      [courseStorageKey, savedCourses],
-      [providerStorageKey, savedProviders],
-      [jobStorageKey, savedJobs]
-    ].forEach(([key, value]) => {
-      localStorage.setItem(key, JSON.stringify(value));
-    });
+      [rentalStorageKey, savedRentals], [courseStorageKey, savedCourses],
+      [providerStorageKey, savedProviders], [jobStorageKey, savedJobs]
+    ].forEach(([key, value]) => localStorage.setItem(key, JSON.stringify(value)));
 
     renderProfileSummary(values);
     renderSavedRentals();
@@ -1213,51 +1179,61 @@ async function loadCloudData(user) {
     updateDashboardCounts();
 
     cloudDataLoadedFor = user.id;
-
-    showAccountStatus(
-      "Conectado como " + user.email +
-      ". Seus dados foram carregados da sua conta."
-    );
-
+    showAccountStatus("Conectado como " + user.email + ". Seus dados foram carregados da sua conta.");
   } catch (error) {
     cloudDataLoadedFor = "";
-    showAccountStatus(
-      "Conta conectada, mas houve um problema ao carregar os dados: " +
-      error.message
-    );
-  }
-}
-async function syncCloudData() {
-  if (!supabaseClient || cloudSyncBusy) { cloudSyncQueued = true; return; }
- 
-const {data:{session}} = await supabaseClient.auth.getSession();
-const user = session?.user;
-if (!user || cloudDataLoadedFor !== user.id) return;
-cloudSyncBusy = true;
-  try {
-    const specs=[
-      ["saved_rentals",savedRentals,x=>({user_id:user.id,property_name:x.name,city:x.city,bedrooms:x.beds,monthly_rent:x.price,listing_url:x.url,notes:x.notes})],
-      ["saved_courses",savedCourses,x=>({user_id:user.id,institution:x.name,course_name:x.name,city:x.city,price:x.price,duration:x.duration,modality:x.mode,status:x.status,official_url:x.url,notes:x.notes})],
-      ["saved_providers",savedProviders,x=>({user_id:user.id,provider_name:x.name,category:x.category,city:x.city,estimated_price:x.price,status:x.status,contact:x.contact,website_url:x.url,notes:x.notes})],
-      ["saved_jobs",savedJobs,x=>({user_id:user.id,job_title:x.title,employer:x.company,city:x.city,hourly_pay:x.pay,application_status:x.status,listing_url:x.url,notes:x.notes})]
-    ];
-    for (const [table,items,map] of specs) {
-      const del=await supabaseClient.from(table).delete().eq("user_id",user.id);
-      if(del.error) throw del.error;
-      if(items.length) {const ins=await supabaseClient.from(table).insert(items.map(map)); if(ins.error) throw ins.error;}
-    }
-    const profile=profileToCloud();
-    const prof=await supabaseClient.from("profiles").upsert({user_id:user.id,...profile},{onConflict:"user_id"});
-    if(prof.error) throw prof.error;
-    showAccountStatus("Conectado como "+user.email+". Seus dados estão sincronizados.");
-  } catch(error) {
-    showAccountStatus("Não foi possível sincronizar seus dados: "+error.message);
-  } finally {
-    cloudSyncBusy=false;
-    if(cloudSyncQueued) {cloudSyncQueued=false; syncCloudData();}
+    showAccountStatus("Conta conectada, mas houve um problema ao carregar os dados: " + error.message);
   }
 }
 
+async function syncCloudData() {
+  if (!supabaseClient || cloudSyncBusy) { cloudSyncQueued = true; return; }
+
+  const {data:{session}} = await supabaseClient.auth.getSession();
+  const user = session?.user;
+  if (!user || cloudDataLoadedFor !== user.id) return;
+
+  cloudSyncBusy = true;
+  try {
+    const specs = [
+      ["saved_rentals", savedRentals, x => ({id:x.id,user_id:user.id,property_name:x.name,city:x.city,bedrooms:x.beds,monthly_rent:x.price,listing_url:x.url,notes:x.notes}), rentalStorageKey],
+      ["saved_courses", savedCourses, x => ({id:x.id,user_id:user.id,institution:x.name,course_name:x.name,city:x.city,price:x.price,duration:x.duration,modality:x.mode,status:x.status,official_url:x.url,notes:x.notes}), courseStorageKey],
+      ["saved_providers", savedProviders, x => ({id:x.id,user_id:user.id,provider_name:x.name,category:x.category,city:x.city,estimated_price:x.price,status:x.status,contact:x.contact,website_url:x.url,notes:x.notes}), providerStorageKey],
+      ["saved_jobs", savedJobs, x => ({id:x.id,user_id:user.id,job_title:x.title,employer:x.company,city:x.city,hourly_pay:x.pay,application_status:x.status,listing_url:x.url,notes:x.notes}), jobStorageKey]
+    ];
+
+    for (const [table, items, map, storageKey] of specs) {
+      items.forEach(item => { if (!item.id) item.id = crypto.randomUUID(); });
+      localStorage.setItem(storageKey, JSON.stringify(items));
+      if (items.length) {
+        const result = await supabaseClient.from(table).upsert(items.map(map), {onConflict:"id"});
+        if (result.error) throw result.error;
+      }
+    }
+
+    const deletesToProcess = [...pendingCloudDeletes];
+    for (const entry of deletesToProcess) {
+      const result = await supabaseClient.from(entry.table).delete()
+        .eq("user_id", user.id).eq("id", entry.id);
+      if (result.error) throw result.error;
+      pendingCloudDeletes = pendingCloudDeletes.filter(item =>
+        !(item.table === entry.table && item.id === entry.id)
+      );
+    }
+
+    const profile = profileToCloud();
+    const prof = await supabaseClient.from("profiles")
+      .upsert({user_id:user.id,...profile},{onConflict:"user_id"});
+    if (prof.error) throw prof.error;
+
+    showAccountStatus("Conectado como " + user.email + ". Seus dados estão sincronizados.");
+  } catch (error) {
+    showAccountStatus("Não foi possível sincronizar seus dados: " + error.message);
+  } finally {
+    cloudSyncBusy = false;
+    if (cloudSyncQueued) { cloudSyncQueued = false; syncCloudData(); }
+  }
+}
 calculateBudget();
 updateArrivalChecklist();
 calculateMoveIn();
