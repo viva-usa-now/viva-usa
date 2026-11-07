@@ -36,12 +36,12 @@ a { color: inherit; }
 nav { display: flex; align-items: center; gap: 25px; flex-wrap: wrap; }
 nav a { text-decoration: none; font-size: .94rem; opacity: .94; }
 nav a:hover { text-decoration: underline; text-underline-offset: 5px; }
-.hero { position: relative; overflow: hidden; padding: clamp(56px, 8vw, 104px) max(5vw, 22px); background: linear-gradient(120deg, #123B5D, #1B587B); color: #fff; }
-.hero::after { content: ""; position: absolute; width: 390px; height: 390px; right: 4%; top: -180px; border: 1px solid #ffffff24; border-radius: 50%; box-shadow: 0 0 0 48px #ffffff0c, 0 0 0 96px #ffffff08; opacity: var(--site-decoration-opacity); pointer-events: none; }
-.hero-inner, .container { max-width: 1160px; margin: 0 auto; }
+ { position: relative; overflow: hidden; padding: clamp(56px, 8vw, 104px) max(5vw, 22px); background: linear-gradient(120deg, #123B5D, #1B587B); color: #fff; }
+::after { content: ""; position: absolute; width: 390px; height: 390px; right: 4%; top: -180px; border: 1px solid #ffffff24; border-radius: 50%; box-shadow: 0 0 0 48px #ffffff0c, 0 0 0 96px #ffffff08; opacity: var(--site-decoration-opacity); pointer-events: none; }
+-inner, .container { max-width: 1160px; margin: 0 auto; }
 .eyebrow { color: #F3C46D; font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 h1, h2, h3 { font-family: var(--site-font-heading); }
-.hero h1 { max-width: 790px; margin: 17px 0; font-size: clamp(2.35rem, 5.6vw, calc(4.3rem * var(--site-heading-scale))); line-height: 1.04; letter-spacing: -.055em; }
+ h1 { max-width: 790px; margin: 17px 0; font-size: clamp(2.35rem, 5.6vw, calc(4.3rem * var(--site-heading-scale))); line-height: 1.04; letter-spacing: -.055em; }
 .hero p { max-width: 680px; color: #E1EAF0; font-size: clamp(1rem, 1.7vw, 1.16rem); line-height: 1.7; }
 .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; margin-top: 16px; padding: 12px 20px; border: 0; border-radius: calc(9px * var(--site-radius-scale)); background: var(--site-secondary); color: var(--site-on-secondary); font-weight: 800; text-decoration: none; cursor: pointer; }
 .button:hover { filter: brightness(.96); }
@@ -252,7 +252,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   .tab-nav button { font-size: .83rem; padding: 8px 10px; }
 }
 .hero {
-  display: block !important;
+  display: none;
 }
   
 </style>
