@@ -222,18 +222,47 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 @media (max-width: 850px) { .saved-jobs { grid-template-columns: 1fr; } }
 .profile-panel { margin: 0 0 42px; padding: clamp(20px, 3vw, 32px); border: 1px solid var(--border); border-radius: calc(18px * var(--site-radius-scale)); background: var(--surface); }
 .profile-summary { margin-top: 18px; padding: 14px 16px; border-radius: 10px; background: var(--surface-soft); color: var(--site-on-background); font-size: .9rem; line-height: 1.65; overflow-wrap: anywhere; }
+
+
+/* Navegação compacta por abas */
+.hero { display: none; }
+.container { padding-top: 24px; padding-bottom: 36px; }
+.topbar { flex-wrap: wrap; gap: 14px; }
+.tab-nav { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+.tab-nav button {
+  min-height: 40px; padding: 9px 14px; border: 1px solid #ffffff55;
+  border-radius: 9px; background: transparent; color: var(--site-on-primary);
+  font: inherit; font-size: .9rem; font-weight: 750; cursor: pointer;
+}
+.tab-nav button:hover, .tab-nav button[aria-expanded="true"] {
+  background: var(--site-secondary); border-color: var(--site-secondary);
+  color: var(--site-on-secondary);
+}
+.tab-panels { min-height: 0; }
+.tab-panel { min-width: 0; }
+.tab-panel[hidden] { display: none !important; }
+.tab-panel > * { scroll-margin-top: 95px; }
+.tab-panel > .profile-panel, .tab-panel > .dashboard { margin-top: 0; }
+.tab-panel > .profile-panel + .profile-panel { margin-top: 18px; }
+#meu-perfil > #dashboard-panel { margin-top: 26px; }
+#meu-perfil > #dashboard-panel .dashboard-grid { margin-top: 16px; }
+@media (max-width: 700px) {
+  .topbar { position: sticky; top: 0; align-items: flex-start; flex-direction: column; }
+  .tab-nav { justify-content: flex-start; width: 100%; gap: 7px; }
+  .tab-nav button { font-size: .83rem; padding: 8px 10px; }
+}
+
 </style>
 </head>
 <body>
 <div id="app">
   <header class="topbar">
-    <a class="brand" href="#inicio" aria-label="Viva USA início" style="text-decoration:none">Viva <span>USA</span></a>
-<nav aria-label="Navegação principal">
-  <a href="#conta-vivausa">Minha conta</a>
-  <a href="#meu-perfil">Meu perfil</a>
-  <a href="#busca-imoveis">Moradia</a>
-  <a href="#educacao">Cursos</a>
-  <a href="#diretorio-local">Prestadores de serviços</a>
+    <a class="brand" href="#" aria-label="Viva USA início" style="text-decoration:none">Viva <span>USA</span></a>
+<nav class="tab-nav" aria-label="Navegação principal">
+  <button type="button" data-open-tab="perfil" aria-controls="tab-perfil" aria-expanded="false">Meu Perfil</button>
+  <button type="button" data-open-tab="moradia" aria-controls="tab-moradia" aria-expanded="false">Moradia</button>
+  <button type="button" data-open-tab="cursos" aria-controls="tab-cursos" aria-expanded="false">Cursos</button>
+  <button type="button" data-open-tab="prestadores" aria-controls="tab-prestadores" aria-expanded="false">Prestadores de serviços</button>
 </nav>
   </header>
   <section class="hero" id="inicio">
@@ -245,7 +274,14 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     </div>
   </section>
   <main class="container" id="servicos">
-   <div style="margin-top:35px">
+    <div class="tab-panels" id="tabPanels">
+      <section class="tab-panel" id="tab-perfil" data-tab-panel="perfil" hidden></section>
+      <section class="tab-panel" id="tab-moradia" data-tab-panel="moradia" hidden></section>
+      <section class="tab-panel" id="tab-cursos" data-tab-panel="cursos" hidden></section>
+      <section class="tab-panel" id="tab-prestadores" data-tab-panel="prestadores" hidden></section>
+    </div>
+    
+   <div id="dashboard-panel" style="margin-top:35px">
   <div class="eyebrow" style="color:#B17A1D">Seu acompanhamento</div>
   <h2 class="section-heading">Meu Painel</h2>
   <p class="lead">Acompanhe suas atividades e tudo o que você salvou no Viva USA.</p>
@@ -313,7 +349,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
         <div class="calc-actions"><button class="button" id="saveProfile" type="button">Salvar meu perfil</button><button class="secondary-button" id="clearProfile" type="button">Apagar perfil deste dispositivo</button><span id="profileStatus" class="calc-note" role="status" aria-live="polite"></span></div>
         <div class="profile-summary" id="profileSummary" aria-live="polite">Seu perfil ainda não foi preenchido.</div>
       </div>
-      <p class="dashboard-note">Atenção: este perfil é apenas local, salvo neste navegador. Não cria conta, não usa senha e não fica disponível para a equipe Viva USA. Para contas reais com login, recuperação de senha e sincronização, será necessário configurar um serviço de autenticação e banco de dados seguro.</p>
+      <p class="dashboard-note">Ao entrar na sua conta Viva USA, seu perfil pode ser sincronizado com o serviço de contas. Evite inserir documentos, SSN, senhas ou dados bancários nestas anotações.</p>
     </section>
     <h2 class="section-heading">Sua vida nos EUA, passo a passo</h2>
     <p class="lead">Conte com informações claras para entender os primeiros passos, comparar opções e tomar decisões com mais segurança.</p>
@@ -642,6 +678,63 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   </main>
   <footer class="footer">© 2026 Viva USA · Informação e orientação para sua jornada nos Estados Unidos.</footer>
 </div>
+<script>
+(function () {
+  const byId = (id) => document.getElementById(id);
+  const panels = {
+    perfil: byId("tab-perfil"),
+    moradia: byId("tab-moradia"),
+    cursos: byId("tab-cursos"),
+    prestadores: byId("tab-prestadores")
+  };
+  const profile = byId("meu-perfil");
+  const dashboard = byId("dashboard-panel");
+  const account = byId("conta-vivausa");
+  const guide = byId("guia");
+  const directory = byId("diretorio-local");
+
+  // Meu Perfil reúne conta, dados pessoais, painel, guia, empregos e apresentação do projeto.
+  if (account && panels.perfil) panels.perfil.appendChild(account);
+  if (profile && panels.perfil) panels.perfil.appendChild(profile);
+  if (dashboard && profile) profile.appendChild(dashboard);
+
+  // O diretório local fica junto dos prestadores, sem duplicar seu ID.
+  if (directory && panels.prestadores) panels.prestadores.appendChild(directory);
+
+  const introHeading = document.querySelector('main > h2.section-heading');
+  const introLead = introHeading && introHeading.nextElementSibling;
+  const introCards = introLead && introLead.nextElementSibling;
+  [introHeading, introLead, introCards, guide, byId("emprego"), byId("sobre")].forEach((node) => {
+    if (node && panels.perfil) panels.perfil.appendChild(node);
+  });
+
+  [byId("comparador"), byId("planejar-mudanca"), byId("busca-imoveis"), byId("comparar-imoveis")].forEach((node) => {
+    if (node && panels.moradia) panels.moradia.appendChild(node);
+  });
+  if (byId("educacao") && panels.cursos) panels.cursos.appendChild(byId("educacao"));
+  if (byId("assistencia") && panels.prestadores) panels.prestadores.appendChild(byId("assistencia"));
+
+  const buttons = Array.from(document.querySelectorAll("[data-open-tab]"));
+  function openTab(name) {
+    const selected = panels[name];
+    const alreadyOpen = selected && !selected.hidden;
+    Object.entries(panels).forEach(([key, panel]) => {
+      if (panel) panel.hidden = key !== name || alreadyOpen;
+    });
+    buttons.forEach((button) => {
+      const active = button.dataset.openTab === name && !alreadyOpen;
+      button.setAttribute("aria-expanded", String(active));
+    });
+    if (!alreadyOpen && selected) {
+      selected.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => openTab(button.dataset.openTab));
+  });
+})();
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://qykzfalkmsanwazwuiuh.supabase.co";
