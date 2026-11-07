@@ -225,7 +225,27 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 
 
 /* Navegação compacta por abas */
-.hero { display: none; }
+.hero {
+  display: block;
+  padding: 28px max(5vw, 22px);
+  background: var(--site-primary);
+  color: white;
+}
+.hero-inner {
+  max-width: 1280px;
+  margin: auto;
+}
+.hero h1 {
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  margin: 8px 0;
+}
+.hero p {
+  font-size: .95rem;
+  margin: 8px 0;
+}
+.hero .button {
+  margin-top: 8px;
+}
 .container { padding-top: 24px; padding-bottom: 36px; }
 .topbar { flex-wrap: wrap; gap: 14px; }
 .tab-nav { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
