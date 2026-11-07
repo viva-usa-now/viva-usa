@@ -291,6 +291,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   <button type="button" data-open-tab="moradia" aria-controls="tab-moradia" aria-expanded="false">Moradia</button>
   <button type="button" data-open-tab="cursos" aria-controls="tab-cursos" aria-expanded="false">Cursos</button>
   <button type="button" data-open-tab="prestadores" aria-controls="tab-prestadores" aria-expanded="false">Prestadores de serviços</button>
+  <button type="button" data-open-tab="sobre" aria-controls="tab-sobre" aria-expanded="false">Quem Somos</button>
 </nav>
   </header>
   <section class="hero" id="inicio">
@@ -307,6 +308,44 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
       <section class="tab-panel" id="tab-moradia" data-tab-panel="moradia" hidden></section>
       <section class="tab-panel" id="tab-cursos" data-tab-panel="cursos" hidden></section>
       <section class="tab-panel" id="tab-prestadores" data-tab-panel="prestadores" hidden></section>
+      <section class="tab-panel" id="tab-sobre" data-tab-panel="sobre" hidden>
+
+  <div class="about">
+    <div class="about-box">
+      <div class="eyebrow">Conheça o Viva USA</div>
+      <h2>Quem Somos</h2>
+      <p>
+        O Viva USA nasceu para ajudar brasileiros a transformar
+        o sonho de viver nos Estados Unidos em um projeto mais
+        seguro, organizado e possível.
+      </p>
+    </div>
+
+    <div class="container">
+      <h2 class="section-heading">Nossa missão</h2>
+      <p class="lead">
+        Facilitar a adaptação dos brasileiros nos Estados Unidos,
+        oferecendo informações e ferramentas práticas para cada
+        etapa dessa jornada.
+      </p>
+
+      <h2 class="section-heading">O que fazemos</h2>
+      <ul>
+        <li>Orientação sobre moradia e custo de vida.</li>
+        <li>Informações sobre cursos e oportunidades.</li>
+        <li>Diretório de prestadores de serviços.</li>
+        <li>Ferramentas para planejamento da mudança.</li>
+      </ul>
+
+      <h2 class="section-heading">Nosso compromisso</h2>
+      <p class="lead">
+        Oferecer informação clara, acessível e transparente,
+        ajudando cada pessoa a tomar decisões mais conscientes.
+      </p>
+    </div>
+  </div>
+
+</section>
     </div>
     
    <div id="dashboard-panel" style="margin-top:35px">
@@ -713,7 +752,8 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     perfil: byId("tab-perfil"),
     moradia: byId("tab-moradia"),
     cursos: byId("tab-cursos"),
-    prestadores: byId("tab-prestadores")
+    prestadores: byId("tab-prestadores"),
+    sobre: byId("tab-sobre")
   };
   const profile = byId("meu-perfil");
   const dashboard = byId("dashboard-panel");
@@ -732,7 +772,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   const introHeading = document.querySelector('main > h2.section-heading');
   const introLead = introHeading && introHeading.nextElementSibling;
   const introCards = introLead && introLead.nextElementSibling;
-  [introHeading, introLead, introCards, guide, byId("emprego"), byId("sobre")].forEach((node) => {
+ [introHeading, introLead, introCards, guide, byId("emprego")].forEach((node) => {
     if (node && panels.perfil) panels.perfil.appendChild(node);
   });
 
