@@ -842,9 +842,13 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     if (node && panels.perfil) panels.perfil.appendChild(node);
   });
 
-  [byId("comparador"), byId("planejar-mudanca"), byId("busca-imoveis"), byId("comparar-imoveis")].forEach((node) => {
-    if (node && panels.moradia) panels.moradia.appendChild(node);
-  });
+ if (byId("comparador") && panels.custo) {
+  panels.custo.appendChild(byId("comparador"));
+}
+
+[byId("planejar-mudanca"), byId("busca-imoveis"), byId("comparar-imoveis")].forEach((node) => {
+  if (node && panels.moradia) panels.moradia.appendChild(node);
+});
   if (byId("educacao") && panels.cursos) panels.cursos.appendChild(byId("educacao"));
   if (byId("assistencia") && panels.prestadores) panels.prestadores.appendChild(byId("assistencia"));
 
