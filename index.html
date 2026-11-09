@@ -842,8 +842,14 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     if (node && panels.perfil) panels.perfil.appendChild(node);
   });
 
- if (byId("comparador") && panels.custo) {
-  panels.custo.appendChild(byId("comparador"));
+if (byId("comparador") && panels.moradia) {
+  panels.moradia.appendChild(byId("comparador"));
+
+  const budgetCalculator = byId("comparador").querySelector(".calculator");
+
+  if (budgetCalculator && panels.custo) {
+    panels.custo.appendChild(budgetCalculator);
+  }
 }
 
 [byId("planejar-mudanca"), byId("busca-imoveis"), byId("comparar-imoveis")].forEach((node) => {
