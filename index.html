@@ -293,6 +293,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 <nav class="tab-nav" aria-label="Navegação principal">
   <button type="button" data-open-tab="perfil" aria-controls="tab-perfil" aria-expanded="false">Meu Perfil</button>
   <button type="button" data-open-tab="moradia" aria-controls="tab-moradia" aria-expanded="false">Moradia</button>
+  <button type="button" data-open-tab="custo" aria-controls="tab-custo" aria-expanded="false">Custo de vida</button>
   <button type="button" data-open-tab="cursos" aria-controls="tab-cursos" aria-expanded="false">Cursos</button>
   <button type="button" data-open-tab="prestadores" aria-controls="tab-prestadores" aria-expanded="false">Prestadores de serviços</button>
   <button type="button" data-open-tab="sobre" aria-controls="tab-sobre" aria-expanded="false">Quem Somos</button>
@@ -364,6 +365,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     <div class="tab-panels" id="tabPanels">
       <section class="tab-panel" id="tab-perfil" data-tab-panel="perfil" hidden></section>
       <section class="tab-panel" id="tab-moradia" data-tab-panel="moradia" hidden></section>
+      <section class="tab-panel" id="tab-custo" data-tab-panel="custo" hidden></section>
       <section class="tab-panel" id="tab-cursos" data-tab-panel="cursos" hidden></section>
       <section class="tab-panel" id="tab-prestadores" data-tab-panel="prestadores" hidden></section>
       <section class="tab-panel" id="tab-sobre" data-tab-panel="sobre" hidden>
@@ -806,6 +808,7 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   const panels = {
     perfil: byId("tab-perfil"),
     moradia: byId("tab-moradia"),
+    custo: byId("tab-custo"),
     cursos: byId("tab-cursos"),
     prestadores: byId("tab-prestadores"),
     sobre: byId("tab-sobre")
