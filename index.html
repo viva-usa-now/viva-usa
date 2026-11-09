@@ -225,20 +225,24 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 
 
 /* Navegação compacta por abas */
+
 .hero {
-  display: block;
-  padding: 42px max(5vw, 22px);
+  display: flex;
+  align-items: center;
+  min-height: 360px;
+  padding: 65px max(7vw, 22px);
   background:
     linear-gradient(
       90deg,
-      rgba(18, 59, 93, .78),
-      rgba(18, 59, 93, .30)
+      rgba(18, 59, 93, .88),
+      rgba(18, 59, 93, .35)
     ),
     url('https://images.unsplash.com/photo-1617602270197-84d5e39c2874?auto=format&fit=crop&fm=jpg&q=75&w=2000');
   background-size: cover;
   background-position: center;
   color: white;
 }
+
 .hero-inner {
   max-width: 1280px;
   margin: auto;
