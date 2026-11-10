@@ -875,6 +875,36 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
           <label class="field full" for="courseNotes">Observações<textarea id="courseNotes" rows="3" maxlength="1000" placeholder="Horários, requisitos, documentos, contato..."></textarea></label>
         </div>
         <div class="calc-actions"><button class="button" id="saveCourse" type="button">Salvar na minha lista</button><button class="button secondary" id="cancelCourseEdit" type="button" hidden>Cancelar edição</button><span id="courseStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
+        
+<div class="course-filters">
+  <input
+    id="courseSearch"
+    type="search"
+    placeholder="Pesquisar curso ou instituição..."
+    aria-label="Pesquisar curso ou instituição"
+  >
+
+  <select id="courseCityFilter" aria-label="Filtrar por cidade">
+    <option value="">Todas as cidades</option>
+  </select>
+
+  <select id="courseModeFilter" aria-label="Filtrar por modalidade">
+    <option value="">Todas as modalidades</option>
+    <option value="Presencial">Presencial</option>
+    <option value="Online">Online</option>
+    <option value="Híbrido">Híbrido</option>
+    <option value="A confirmar">A confirmar</option>
+  </select>
+
+  <select id="courseProgressFilter" aria-label="Filtrar por andamento">
+    <option value="">Todos os andamentos</option>
+    <option value="Quero pesquisar">Quero pesquisar</option>
+    <option value="Entrei em contato">Entrei em contato</option>
+    <option value="Inscrito">Inscrito</option>
+    <option value="Concluído">Concluído</option>
+  </select>
+</div>
+
         <div id="savedCourses" class="saved-courses" aria-live="polite"><p class="calc-note">Nenhum curso salvo ainda.</p></div>
         <p class="calc-note">Privacidade: não salve documentos, número de Social Security, senhas ou informações financeiras. Limpar os dados do navegador pode apagar esta lista.</p>
       </div>
