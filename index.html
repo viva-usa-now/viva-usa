@@ -1284,7 +1284,7 @@ function updateRentalPortalLinks() {
     },
     {
       name: "Apartments.com",
-      url: `https://www.apartments.com/${citySlug}-fl/`
+     url: `https://www.apartments.com/${citySlug}-fl/${beds === "studio" ? "studio" : `${beds}-bedrooms`}${max > 0 ? `-under-${max}` : ""}/`
     },
     {
       name: "Realtor.com",
