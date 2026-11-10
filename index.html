@@ -1206,20 +1206,70 @@ function updateJobSearchLinks() {
   control.addEventListener("input", updateJobSearchLinks);
 });
 
+
 function updateRentalPortalLinks() {
   const city = rentalCity.value.trim();
   const beds = rentalBedrooms.value;
   const max = Number(rentalMax.value);
+  const type = rentalType.value;
 
-  const citySlug = city
-    .toLowerCase()
-    .replace(/,/g, "")
-    .replace(/\s+/g, "-");
+  const cityMap = {
+    "Orlando": "orlando",
+    "Winter Garden": "winter-garden",
+    "Tampa": "tampa",
+    "Kissimmee": "kissimmee",
+    "Clermont": "clermont",
+    "Lake Nona": "orlando"
+  };
+
+  const citySlug = cityMap[city] || city.toLowerCase().replace(/\s+/g, "-");
+
+  let bedFilter;
+
+  if (beds === "studio") {
+    bedFilter = { min: 0, max: 0 };
+  } else if (beds === "4") {
+    bedFilter = { min: 4 };
+  } else {
+    bedFilter = { min: Number(beds), max: Number(beds) };
+  }
+
+  const homeTypes = {
+    isApartment: type === "apartamento" || type === "qualquer tipo",
+    isCondo: type === "apartamento" || type === "qualquer tipo",
+    isSingleFamily: type === "casa" || type === "qualquer tipo",
+    isTownhouse: type === "townhouse" || type === "qualquer tipo",
+    isMultiFamily: type === "qualquer tipo"
+  };
+
+  const filterState = {
+    isForRent: { value: true },
+    beds: bedFilter
+  };
+
+  Object.entries(homeTypes).forEach(([key, value]) => {
+    filterState[key] = { value };
+  });
+
+  if (max > 0) {
+    filterState.price = { max: max };
+  }
+
+  const searchState = {
+    usersSearchTerm: city === "Lake Nona"
+      ? "Lake Nona, Orlando, FL"
+      : `${city}, FL`,
+    filterState: filterState,
+    pagination: {}
+  };
+
+  const zillowUrl =
+    `https://www.zillow.com/${citySlug}-fl/rentals/?searchQueryState=${encodeURIComponent(JSON.stringify(searchState))}`;
 
   const portals = [
     {
       name: "Zillow",
-      url: `https://www.zillow.com/${citySlug}-fl/rentals/`
+      url: zillowUrl
     },
     {
       name: "Apartments.com",
@@ -1247,6 +1297,7 @@ function updateRentalPortalLinks() {
     container.appendChild(link);
   });
 }
+
 
 [rentalCity, rentalBedrooms, rentalMax, rentalType].forEach(control => control.addEventListener("change", updateRentalPortalLinks));
 rentalMax.addEventListener("input", updateRentalPortalLinks);
