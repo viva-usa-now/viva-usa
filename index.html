@@ -1441,21 +1441,29 @@ function renderSavedCourses() {
     details.className = "course-card-details";
 
     [
-      ["Cidade", course.city || "Não informada"],
-      ["Preço", course.price ? formatMoney(course.price) : "A confirmar"],
-      ["Duração", course.duration || "A confirmar"],
-      ["Modalidade", course.mode || "A confirmar"]
-    ].forEach(([label, value]) => {
-      const field = document.createElement("div");
-      const small = document.createElement("span");
-      small.textContent = label;
+    
+[
+  ["Cidade", course.city || "Não informada"],
+  ["Preço", course.price ? formatMoney(course.price) : "A confirmar"],
+  ["Duração", course.duration || "A confirmar"],
+  ["Modalidade", course.mode || "A confirmar"]
+].forEach(([label, value]) => {
+  const field = document.createElement("div");
 
-      const strong = document.createElement("strong");
-      strong.textContent = value;
+  if (label === "Preço") {
+    field.className = "course-price-field";
+  }
 
-      field.append(small, strong);
-      details.append(field);
-    });
+  const small = document.createElement("span");
+  small.textContent = label;
+
+  const strong = document.createElement("strong");
+  strong.textContent = value;
+
+  field.append(small, strong);
+  details.append(field);
+});
+
 
     const notes = document.createElement("p");
     notes.className = "course-card-notes";
