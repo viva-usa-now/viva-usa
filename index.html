@@ -1292,7 +1292,7 @@ function updateRentalPortalLinks() {
     },
     {
       name: "HotPads",
-      url: `https://hotpads.com/${citySlug}-fl/apartments-for-rent`
+     url: `https://hotpads.com/${citySlug}-fl/apartments-for-rent?beds=${beds === "studio" ? "0" : beds}&maxPrice=${max > 0 ? max : ""}`
     }
   ];
 
