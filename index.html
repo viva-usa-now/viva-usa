@@ -1205,23 +1205,49 @@ function updateJobSearchLinks() {
   control.addEventListener("change", updateJobSearchLinks);
   control.addEventListener("input", updateJobSearchLinks);
 });
+
 function updateRentalPortalLinks() {
-  const city = rentalCity.value;
-  const beds = rentalBedrooms.value === "studio" ? "studio" : rentalBedrooms.value === "4" ? "4 or more bedrooms" : `${rentalBedrooms.value} bedrooms`;
-  const max = Number(rentalMax.value) > 0 ? ` under $${Math.round(Number(rentalMax.value))} per month` : "";
-  const query = `${rentalType.value} for rent in ${city}, Florida, ${beds}${max}`;
-  const portals = [{name:"Zillow",domain:"zillow.com"},{name:"Apartments.com",domain:"apartments.com"},{name:"Realtor.com",domain:"realtor.com"},{name:"HotPads",domain:"hotpads.com"}];
+  const city = rentalCity.value.trim();
+  const beds = rentalBedrooms.value;
+  const max = Number(rentalMax.value);
+
+  const citySlug = city
+    .toLowerCase()
+    .replace(/,/g, "")
+    .replace(/\s+/g, "-");
+
+  const portals = [
+    {
+      name: "Zillow",
+      url: `https://www.zillow.com/${citySlug}-fl/rentals/`
+    },
+    {
+      name: "Apartments.com",
+      url: `https://www.apartments.com/${citySlug}-fl/`
+    },
+    {
+      name: "Realtor.com",
+      url: `https://www.realtor.com/apartments/${citySlug}_FL`
+    },
+    {
+      name: "HotPads",
+      url: `https://hotpads.com/${citySlug}-fl/apartments-for-rent`
+    }
+  ];
+
   const container = document.getElementById("rentalPortalLinks");
   container.replaceChildren();
+
   portals.forEach(portal => {
     const link = document.createElement("a");
-    link.href = `https://www.google.com/search?q=${encodeURIComponent(`${query} site:${portal.domain}`)}`;
+    link.href = portal.url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = `Pesquisar no ${portal.name}`;
     container.appendChild(link);
   });
 }
+
 [rentalCity, rentalBedrooms, rentalMax, rentalType].forEach(control => control.addEventListener("change", updateRentalPortalLinks));
 rentalMax.addEventListener("input", updateRentalPortalLinks);
 const rentalStorageKey = "vivaUSA_saved_rentals_v1";
