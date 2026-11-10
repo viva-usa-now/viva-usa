@@ -1206,7 +1206,6 @@ function updateJobSearchLinks() {
   control.addEventListener("input", updateJobSearchLinks);
 });
 
-
 function updateRentalPortalLinks() {
   const city = rentalCity.value.trim();
   const beds = rentalBedrooms.value;
@@ -1222,49 +1221,61 @@ function updateRentalPortalLinks() {
     "Lake Nona": "orlando"
   };
 
-  const citySlug = cityMap[city] || city.toLowerCase().replace(/\s+/g, "-");
+  const citySlug = cityMap[city] || "orlando";
 
   let bedFilter;
 
   if (beds === "studio") {
     bedFilter = { min: 0, max: 0 };
-  } else if (beds === "4") {
-    bedFilter = { min: 4 };
   } else {
-    bedFilter = { min: Number(beds), max: Number(beds) };
+    bedFilter = { min: Number(beds) };
   }
 
-  const homeTypes = {
-    isApartment: type === "apartamento" || type === "qualquer tipo",
-    isCondo: type === "apartamento" || type === "qualquer tipo",
-    isSingleFamily: type === "casa" || type === "qualquer tipo",
-    isTownhouse: type === "townhouse" || type === "qualquer tipo",
-    isMultiFamily: type === "qualquer tipo"
-  };
-
   const filterState = {
-    isForRent: { value: true },
-    beds: bedFilter
+    sort: { value: "priorityscore" },
+    fr: { value: true },
+    fsba: { value: false },
+    fsbo: { value: false },
+    nc: { value: false },
+    lsact: { value: false },
+    lscmsn: { value: false },
+    lszp: { value: false },
+    auc: { value: false },
+    fore: { value: false },
+    mf: { value: false },
+    land: { value: false },
+    manu: { value: false },
+    beds: bedFilter,
+    sf: { value: false },
+    tow: { value: false }
   };
-
-  Object.entries(homeTypes).forEach(([key, value]) => {
-    filterState[key] = { value };
-  });
 
   if (max > 0) {
-    filterState.price = { max: max };
+    filterState.mp = { max: max };
+  }
+
+  let zillowCategory = "rentals";
+
+  if (type === "apartamento") {
+    zillowCategory = "apartments";
+  } else if (type === "casa") {
+    zillowCategory = "rent-houses";
+  } else if (type === "townhouse") {
+    zillowCategory = "rent-townhomes";
   }
 
   const searchState = {
-    usersSearchTerm: city === "Lake Nona"
-      ? "Lake Nona, Orlando, FL"
-      : `${city}, FL`,
+    pagination: {},
+    isMapVisible: true,
     filterState: filterState,
-    pagination: {}
+    isListVisible: true,
+    usersSearchTerm: city === "Lake Nona"
+      ? "Lake Nona Orlando FL"
+      : `${city} FL`
   };
 
   const zillowUrl =
-    `https://www.zillow.com/${citySlug}-fl/rentals/?searchQueryState=${encodeURIComponent(JSON.stringify(searchState))}`;
+    `https://www.zillow.com/${citySlug}-fl/${zillowCategory}/?searchQueryState=${encodeURIComponent(JSON.stringify(searchState))}`;
 
   const portals = [
     {
