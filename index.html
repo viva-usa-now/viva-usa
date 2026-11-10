@@ -1249,34 +1249,150 @@ function beginCourseEdit(index) {
   document.getElementById("courseStatusMessage").textContent = "Editando: " + course.name;
   document.getElementById("courseName").focus();
 }
+
 function renderSavedCourses() {
   const container = document.getElementById("savedCourses");
-  if (!savedCourses.length) { container.innerHTML = '<p class="calc-note">Nenhum curso salvo ainda.</p>'; return; }
   container.replaceChildren();
+
+  if (!savedCourses.length) {
+    const empty = document.createElement("p");
+    empty.className = "calc-note";
+    empty.textContent = "Nenhum curso salvo ainda. Cadastre seu primeiro curso acima.";
+    container.append(empty);
+    return;
+  }
+
+  const summary = document.createElement("div");
+  summary.className = "course-summary";
+
+  const completed = savedCourses.filter(c => c.status === "Concluído").length;
+  const inProgress = savedCourses.filter(c =>
+    c.status === "Inscrito" || c.status === "Entrei em contato"
+  ).length;
+
+  [
+    ["Cursos salvos", savedCourses.length],
+    ["Em andamento", inProgress],
+    ["Concluídos", completed]
+  ].forEach(([label, value]) => {
+    const item = document.createElement("div");
+    item.className = "course-summary-item";
+
+    const number = document.createElement("strong");
+    number.textContent = value;
+
+    const caption = document.createElement("span");
+    caption.textContent = label;
+
+    item.append(number, caption);
+    summary.append(item);
+  });
+
+  container.append(summary);
+
   savedCourses.forEach((course, index) => {
-    const card = document.createElement("article"); card.className = "saved-course";
-    const title = document.createElement("h4"); title.textContent = course.name;
-    const details = document.createElement("p");
-    details.textContent = [course.city, course.price ? formatMoney(course.price) : "Preço a confirmar", course.duration, course.mode].filter(Boolean).join(" · ");
-    const notes = document.createElement("p"); notes.textContent = course.notes || "Sem observações.";
-    const status = document.createElement("select"); status.setAttribute("aria-label", "Andamento de " + course.name);
-    ["Quero pesquisar", "Entrei em contato", "Inscrito", "Concluído"].forEach(value => { const option = document.createElement("option"); option.value = value; option.textContent = value; status.append(option); });
-    status.value = course.status;
-    status.addEventListener("change", () => { savedCourses[index].status = status.value; persistSavedCourses("Andamento atualizado."); });
-    card.append(title, details);
-    if (course.url) { const link = document.createElement("a"); link.href = course.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = "Abrir página do curso"; card.append(link); }
-    card.append(notes, status);
-    const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Editar"; edit.addEventListener("click", () => beginCourseEdit(index));
-    const remove = document.createElement("button"); remove.type = "button"; remove.textContent = "Excluir"; remove.addEventListener("click", () => {
+    const card = document.createElement("article");
+    card.className = "saved-course";
+
+    const header = document.createElement("div");
+    header.className = "course-card-header";
+
+    const title = document.createElement("h4");
+    title.textContent = course.name;
+
+    const status = document.createElement("select");
+    status.className = "course-status-select";
+    status.setAttribute("aria-label", "Andamento de " + course.name);
+
+    ["Quero pesquisar", "Entrei em contato", "Inscrito", "Concluído"]
+      .forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        status.append(option);
+      });
+
+    status.value = course.status || "Quero pesquisar";
+
+    status.addEventListener("change", () => {
+      savedCourses[index].status = status.value;
+      persistSavedCourses("Andamento atualizado.");
+    });
+
+    header.append(title, status);
+
+    const details = document.createElement("div");
+    details.className = "course-card-details";
+
+    [
+      ["Cidade", course.city || "Não informada"],
+      ["Preço", course.price ? formatMoney(course.price) : "A confirmar"],
+      ["Duração", course.duration || "A confirmar"],
+      ["Modalidade", course.mode || "A confirmar"]
+    ].forEach(([label, value]) => {
+      const field = document.createElement("div");
+      const small = document.createElement("span");
+      small.textContent = label;
+
+      const strong = document.createElement("strong");
+      strong.textContent = value;
+
+      field.append(small, strong);
+      details.append(field);
+    });
+
+    const notes = document.createElement("p");
+    notes.className = "course-card-notes";
+    notes.textContent = course.notes || "Sem observações.";
+
+    card.append(header, details);
+
+    if (course.url) {
+      const link = document.createElement("a");
+      link.href = course.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "Abrir página oficial do curso";
+      card.append(link);
+    }
+
+    card.append(notes);
+
+    const actions = document.createElement("div");
+    actions.className = "course-card-actions";
+
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "button secondary";
+    edit.textContent = "Editar";
+    edit.addEventListener("click", () => beginCourseEdit(index));
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "button secondary";
+    remove.textContent = "Excluir";
+
+    remove.addEventListener("click", () => {
+      if (!confirm("Deseja excluir este curso?")) return;
+
       if (editingCourseIndex === index) resetCourseForm();
+
       queueCloudDelete("saved_courses", savedCourses[index]);
       savedCourses.splice(index, 1);
-      if (editingCourseIndex !== null && editingCourseIndex > index) editingCourseIndex--;
+
+      if (editingCourseIndex !== null && editingCourseIndex > index) {
+        editingCourseIndex--;
+      }
+
       persistSavedCourses("Curso removido.");
     });
-    card.append(edit, remove); container.append(card);
+
+    actions.append(edit, remove);
+    card.append(actions);
+    container.append(card);
   });
 }
+
 function persistSavedCourses(message) {
   try { localStorage.setItem(courseStorageKey, JSON.stringify(savedCourses)); document.getElementById("courseStatusMessage").textContent = message + " Salvo neste dispositivo."; }
   catch (error) { document.getElementById("courseStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
