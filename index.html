@@ -1288,7 +1288,7 @@ function updateRentalPortalLinks() {
     },
     {
       name: "Realtor.com",
-      url: `https://www.realtor.com/apartments/${citySlug}_FL`
+      url: `https://www.realtor.com/apartments/${citySlug}_FL/${beds === "studio" ? "beds-0" : `beds-${beds}`}${max > 0 ? `/price-na-${max}` : ""}/`
     },
     {
       name: "HotPads",
