@@ -1199,29 +1199,51 @@ function updateLearningSearchLinks() {
 ingCity, learningTopic, learningMode, learningLanguage].forEach(control => {
   control.addEventListener("change", updateLearningSearchLinks);
 });
+
 function updateJobSearchLinks() {
   const title = jobTitle.value.trim() || "jobs";
-  const pay = Number(jobMinPay.value) > 0 ? ` $${Math.round(Number(jobMinPay.value))} per hour` : "";
-  const schedule = jobSchedule.value === "any" ? "" : ` ${jobSchedule.value}`;
-  const query = `${title}${pay}${schedule} jobs in ${jobCity.value}`;
-  const portals = [{name:"Indeed",domain:"indeed.com"},{name:"LinkedIn",domain:"linkedin.com/jobs"},{name:"ZipRecruiter",domain:"ziprecruiter.com"}];
+  const pay = Number(jobMinPay.value) > 0
+    ? ` $${Math.round(Number(jobMinPay.value))} per hour`
+    : "";
+  const schedule = jobSchedule.value === "any"
+    ? ""
+    : ` ${jobSchedule.value}`;
+
+  const location = jobCity.value.trim();
+  const keywords = `${title}${pay}${schedule}`;
+
+  const portals = [
+    {
+      name: "Indeed",
+      url: `https://www.indeed.com/jobs?q=${encodeURIComponent(keywords)}&l=${encodeURIComponent(location)}`
+    },
+    {
+      name: "LinkedIn",
+      url: `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}`
+    },
+    {
+      name: "ZipRecruiter",
+      url: `https://www.ziprecruiter.com/jobs-search?search=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}`
+    },
+    {
+      name: "Vagas do Estado da Flórida",
+      url: "https://jobs.myflorida.com/"
+    }
+  ];
+
   const container = document.getElementById("jobSearchLinks");
   container.replaceChildren();
+
   portals.forEach(portal => {
     const link = document.createElement("a");
-    link.href = `https://www.google.com/search?q=${encodeURIComponent(`${query} site:${portal.domain}`)}`;
+    link.href = portal.url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = `Buscar no ${portal.name}`;
+    link.textContent = `Abrir: ${portal.name}`;
     container.appendChild(link);
   });
-  const stateLink = document.createElement("a");
-  stateLink.href = `https://www.google.com/search?q=${encodeURIComponent(`${query} site:jobs.myflorida.com`)}`;
-  stateLink.target = "_blank";
-  stateLink.rel = "noopener noreferrer";
-  stateLink.textContent = "Vagas do Estado da Flórida";
-  container.appendChild(stateLink);
 }
+
 [jobCity, jobTitle, jobMinPay, jobSchedule].forEach(control => {
   control.addEventListener("change", updateJobSearchLinks);
   control.addEventListener("input", updateJobSearchLinks);
