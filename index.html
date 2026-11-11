@@ -1202,7 +1202,7 @@ function updateLearningSearchLinks() {
     container.appendChild(link);
   });
 }
-ingCity, learningTopic, learningMode, learningLanguage].forEach(control => {
+[learningCity, learningTopic, learningMode, learningLanguage].forEach(control => {
   control.addEventListener("change", updateLearningSearchLinks);
 });
 
