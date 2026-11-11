@@ -1500,7 +1500,7 @@ function beginCourseEdit(index) {
   document.getElementById("courseName").focus();
 }
 
-function renderSavedCourses() {
+function renderSavedCourses(courses = savedCourses) {
   const container = document.getElementById("savedCourses");
   container.replaceChildren();
 
@@ -1540,7 +1540,8 @@ function renderSavedCourses() {
 
   container.append(summary);
 
-  savedCourses.forEach((course, index) => {
+courses.forEach(course => {
+  const index = savedCourses.indexOf(course);
     const card = document.createElement("article");
     card.className = "saved-course";
 
@@ -1652,9 +1653,10 @@ function renderSavedCourses() {
 function persistSavedCourses(message) {
   try { localStorage.setItem(courseStorageKey, JSON.stringify(savedCourses)); document.getElementById("courseStatusMessage").textContent = message + " Salvo neste dispositivo."; }
   catch (error) { document.getElementById("courseStatusMessage").textContent = "Não foi possível salvar neste navegador."; }
-  renderSavedCourses();
-  updateDashboardCounts();
-  syncCloudData();
+  updateCourseCityFilter();
+filterSavedCourses();
+updateDashboardCounts();
+syncCloudData();
 }
 try {
   const storedCourses = JSON.parse(localStorage.getItem(courseStorageKey) || "[]");
@@ -1690,7 +1692,58 @@ document.getElementById("saveCourse").addEventListener("click", () => {
   }
   resetCourseForm();
 });
+
+function updateCourseCityFilter() {
+  const filter = document.getElementById("courseCityFilter");
+  const selectedCity = filter.value;
+
+  const cities = [...new Set(
+    savedCourses
+      .map(course => (course.city || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
+
+  filter.replaceChildren();
+
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "Todas as cidades";
+  filter.append(allOption);
+
+  cities.forEach(city => {
+    const option = document.createElement("option");
+    option.value = city;
+    option.textContent = city;
+    filter.append(option);
+  });
+
+  filter.value = cities.includes(selectedCity) ? selectedCity : "";
+}
+
+function filterSavedCourses() {
+  const search = document.getElementById("courseSearch").value.trim().toLowerCase();
+  const city = document.getElementById("courseCityFilter").value;
+  const mode = document.getElementById("courseModeFilter").value;
+  const progress = document.getElementById("courseProgressFilter").value;
+
+  const filtered = savedCourses.filter(course =>
+    (!search || course.name.toLowerCase().includes(search)) &&
+    (!city || course.city === city) &&
+    (!mode || course.mode === mode) &&
+    (!progress || course.status === progress)
+  );
+
+  renderSavedCourses(filtered);
+}
+
+document.getElementById("courseSearch").addEventListener("input", filterSavedCourses);
+document.getElementById("courseCityFilter").addEventListener("change", filterSavedCourses);
+document.getElementById("courseModeFilter").addEventListener("change", filterSavedCourses);
+document.getElementById("courseProgressFilter").addEventListener("change", filterSavedCourses);
+
+updateCourseCityFilter();
 renderSavedCourses();
+
 const providerStorageKey = "vivaUSA_saved_providers_v1";
 let savedProviders = [];
 function renderSavedProviders() {
