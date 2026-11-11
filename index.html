@@ -1159,23 +1159,44 @@ const learningCity = document.getElementById("learningCity");
 const learningTopic = document.getElementById("learningTopic");
 const learningMode = document.getElementById("learningMode");
 const learningLanguage = document.getElementById("learningLanguage");
+
 function updateLearningSearchLinks() {
   const mode = learningMode.value === "any" ? "" : ` ${learningMode.value}`;
   const language = learningLanguage.value === "any language" ? "" : ` ${learningLanguage.value}`;
   const query = `${learningTopic.value}${mode}${language} courses classes near ${learningCity.value}`;
-  const sources = [{name:"FloridaShines",domain:"floridashines.org"},{name:"Educação da Flórida",domain:"fldoe.org"},{name:"Faculdades e colleges",domain:"edu"},{name:"Bibliotecas e aulas comunitárias",domain:"gov"}];
+
+  const sources = [
+    {
+      name: "FloridaShines",
+      url: "https://www.floridashines.org/"
+    },
+    {
+      name: "Educação da Flórida",
+      url: "https://www.fldoe.org/"
+    },
+    {
+      name: "Faculdades e colleges",
+      url: "https://www.floridashines.org/"
+    },
+    {
+      name: "Bibliotecas e aulas comunitárias",
+      url: "https://www.google.com/search?q=" + encodeURIComponent(`${query} site:gov`)
+    }
+  ];
+
   const container = document.getElementById("learningSearchLinks");
   container.replaceChildren();
+
   sources.forEach(source => {
     const link = document.createElement("a");
-    link.href = `https://www.google.com/search?q=${encodeURIComponent(`${query} site:${source.domain}`)}`;
+    link.href = source.url;
     link.target = "_blank";
     link.rel = "noopener noreferrer";
-    link.textContent = `Pesquisar: ${source.name}`;
+    link.textContent = `Abrir: ${source.name}`;
     container.appendChild(link);
   });
 }
-[learningCity, learningTopic, learningMode, learningLanguage].forEach(control => {
+ingCity, learningTopic, learningMode, learningLanguage].forEach(control => {
   control.addEventListener("change", updateLearningSearchLinks);
 });
 function updateJobSearchLinks() {
