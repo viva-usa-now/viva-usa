@@ -910,7 +910,19 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
       <p class="lead">Defina seus critérios e abra pesquisas nos portais imobiliários. Depois, registre os imóveis que interessarem para manter uma lista comparativa neste dispositivo.</p>
       <div class="form-panel" style="margin-top:18px">
         <div class="form-grid">
-          <label class="field" for="rentalCity">Cidade<select id="rentalCity"><option value="Orlando">Orlando</option><option value="Winter Garden">Winter Garden</option><option value="Tampa">Tampa</option><option value="Kissimmee">Kissimmee</option><option value="Clermont">Clermont</option><option value="Lake Nona">Lake Nona (Orlando)</option></select></label>
+         <label class="field" for="rentalCity">Cidade
+  <select id="rentalCity">
+    <option value="Orlando">Orlando</option>
+    <option value="Winter Garden">Winter Garden</option>
+    <option value="Tampa">Tampa</option>
+    <option value="Kissimmee">Kissimmee</option>
+    <option value="Clermont">Clermont</option>
+    <option value="Lake Nona">Lake Nona (Orlando)</option>
+    <option value="Miami">Miami</option>
+    <option value="Jacksonville">Jacksonville</option>
+    <option value="Naples">Naples</option>
+  </select>
+</label>
           <label class="field" for="rentalBedrooms">Quartos<select id="rentalBedrooms"><option value="studio">Studio</option><option value="1">1 quarto</option><option value="2" selected>2 quartos</option><option value="3">3 quartos</option><option value="4">4+ quartos</option></select></label>
           <label class="field" for="rentalMax">Aluguel máximo mensal (US$)<input id="rentalMax" type="number" min="0" step="50" value="2200" inputmode="numeric"></label>
           <label class="field" for="rentalType">Tipo de imóvel<select id="rentalType"><option value="apartamento">Apartamento</option><option value="casa">Casa</option><option value="townhouse">Townhouse</option><option value="qualquer tipo">Qualquer tipo</option></select></label>
@@ -1362,14 +1374,17 @@ function updateRentalPortalLinks() {
   const max = Number(rentalMax.value);
   const type = rentalType.value;
 
-  const cityMap = {
-    "Orlando": "orlando",
-    "Winter Garden": "winter-garden",
-    "Tampa": "tampa",
-    "Kissimmee": "kissimmee",
-    "Clermont": "clermont",
-    "Lake Nona": "orlando"
-  };
+ const cityMap = {
+  "Orlando": "orlando",
+  "Winter Garden": "winter-garden",
+  "Tampa": "tampa",
+  "Kissimmee": "kissimmee",
+  "Clermont": "clermont",
+  "Lake Nona": "orlando",
+  "Miami": "miami",
+  "Jacksonville": "jacksonville",
+  "Naples": "naples"
+};
 
   const citySlug = cityMap[city] || "orlando";
 
