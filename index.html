@@ -75,10 +75,51 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 .directory-head { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .directory-filter { min-width: 210px; }
 .directory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
-.directory-card { padding: 17px; border: 1px solid var(--border); border-radius: 11px; background: var(--surface); }
-.directory-card h4 { margin: 0 0 6px; }
-.directory-card p { margin: 0 0 12px; color: var(--text-muted); font-size: .87rem; line-height: 1.55; }
-.directory-card a { display: inline-block; margin: 4px 12px 4px 0; color: var(--site-primary); font-size: .86rem; font-weight: 750; text-underline-offset: 3px; }
+.directory-card {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(18, 59, 93, .07);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.directory-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--site-primary);
+  box-shadow: 0 8px 22px rgba(18, 59, 93, .12);
+}
+
+.directory-card h4 {
+  margin: 0 0 10px;
+  color: var(--site-primary);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.directory-card p {
+  margin: 0 0 15px;
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+
+.directory-card a {
+  display: inline-block;
+  margin: 4px 8px 4px 0;
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: var(--site-primary);
+  color: #fff;
+  font-size: .84rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.directory-card a:hover {
+  background: #E7A83E;
+  color: #123B5D;
+}
 .directory-note { margin: 16px 0 0; color: var(--text-muted); font-size: .8rem; line-height: 1.6; }
 .card, .rent-card, .panel { background: var(--surface); border: 1px solid var(--border); border-radius: calc(15px * var(--site-radius-scale)); box-shadow: var(--shadow); }
 .card { padding: 25px; }
