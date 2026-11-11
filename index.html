@@ -1146,6 +1146,8 @@ const rentReference = {
 };
 const defaultExpenses = { rent: 1880, utilities: 300, food: 700, transport: 500, health: 500, phone: 100, other: 300 };
 const directoryCity = document.getElementById("directoryCity");
+  console.log("Menu de regiões:", directoryCity);
+console.log("Cartões encontrados:", document.querySelectorAll("[data-directory-city]").length);
 directoryCity.addEventListener("change", () => {
   document.querySelectorAll("[data-directory-city]").forEach(card => {
     card.hidden = directoryCity.value !== "all" && card.dataset.directoryCity !== directoryCity.value;
