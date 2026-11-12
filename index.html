@@ -581,34 +581,48 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
           <div class="service-step"><strong>4. Você decide</strong><p>O trabalho só começa após sua aprovação expressa e a confirmação das condições.</p></div>
         </div>
       </div>
-      <div class="request-box">
-        <h3 style="margin:0 0 8px">Organize seu pedido de assistência</h3>
-        <p class="calc-note">Monte um resumo para guardar ou compartilhar quando o canal oficial de atendimento estiver disponível. Este formulário é local: não envia seus dados ao Viva USA.</p>
-        <div class="form-grid" style="margin-top:16px">
-          <label class="field" for="requestService">Assunto<select id="requestService"><option>Planejamento da mudança</option><option>Pesquisa de moradia</option><option>Currículo e emprego</option><option>Orientação sobre serviços locais</option><option>Outra necessidade</option></select></label>
-          <label class="field" for="requestCity">Cidade ou região<input id="requestCity" type="text" placeholder="Ex.: Orlando, Florida"></label>
-          <label class="field full" for="requestDetails">O que você precisa organizar?<textarea id="requestDetails" rows="3" style="display:block;width:100%;margin-top:7px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--site-on-background);font:inherit" placeholder="Descreva brevemente sua necessidade. Não informe senhas, SSN ou números de documentos."></textarea></label>
-          <div class="calc-actions full"><button class="button" id="buildRequest" type="button">Montar resumo do pedido</button><button class="secondary-button" id="copyRequest" type="button">Copiar resumo</button><span id="requestStatus" class="calc-note" role="status" aria-live="polite"></span></div>
-        </div>
-        <textarea id="requestOutput" class="request-output" aria-label="Resumo do pedido de assistência" placeholder="O resumo do seu pedido aparecerá aqui. Você poderá editar e copiar."></textarea>
-      </div>
-      <div class="comparison service-organizer" id="organizador-servicos">
-        <h3>Meu organizador de serviços</h3>
-        <p class="calc-note">Registre empresas, profissionais e serviços que encontrou para sua mudança. Compare preços, guarde links e acompanhe seus contatos. Esta lista é privada apenas no sentido de ficar salva neste navegador: não é uma conta protegida nem sincronizada.</p>
-        <div class="form-grid">
-          <label class="field" for="providerName">Empresa ou prestador<input id="providerName" type="text" maxlength="120" placeholder="Nome da empresa ou profissional"></label>
-          <label class="field" for="providerCategory">Categoria<select id="providerCategory"><option>Moradia</option><option>Transporte</option><option>Seguro</option><option>Internet e telefone</option><option>Documentação e tradução</option><option>Educação</option><option>Saúde</option><option>Serviços domésticos</option><option>Outro</option></select></label>
-          <label class="field" for="providerCity">Cidade<input id="providerCity" type="text" maxlength="80" placeholder="Ex.: Winter Garden"></label>
-          <label class="field" for="providerPrice">Preço ou orçamento (US$)<input id="providerPrice" type="number" min="0" step="0.01" placeholder="Ex.: 120"></label>
-          <label class="field" for="providerStatus">Andamento<select id="providerStatus"><option>Para avaliar</option><option>Contato realizado</option><option>Orçamento recebido</option><option>Contratado</option><option>Não escolhido</option></select></label>
-          <label class="field" for="providerContact">Contato (opcional)<input id="providerContact" type="text" maxlength="160" placeholder="Telefone ou e-mail comercial"></label>
-          <label class="field full" for="providerUrl">Site ou anúncio (opcional)<input id="providerUrl" type="url" placeholder="https://"></label>
-          <label class="field full" for="providerNotes">Observações<textarea id="providerNotes" rows="3" maxlength="1000" placeholder="Serviço oferecido, condições, data do orçamento..."></textarea></label>
-        </div>
-        <div class="calc-actions"><button class="button" id="saveProvider" type="button">Salvar serviço</button><span id="providerStatusMessage" class="calc-note" role="status" aria-live="polite"></span></div>
-        <div id="savedProviders" class="saved-providers" aria-live="polite"><p class="calc-note">Nenhum serviço salvo ainda.</p></div>
-        <p class="calc-note">Antes de contratar, confirme identidade, licença quando aplicável, contrato, preço total e avaliações independentes. Não guarde senhas, SSN ou números de documentos.</p>
-      </div>
+    
+<div class="request-box" id="solicitar-assistencia">
+  <h3 style="margin:0 0 8px">Solicitar assistência</h3>
+  <p class="calc-note">Selecione os serviços em que deseja receber ajuda. Nossa equipe analisará seu pedido e apresentará as condições antes de qualquer contratação.</p>
+
+  <div class="form-grid" style="margin-top:16px">
+    <div class="field full">
+      <strong>Quais serviços você deseja contratar?</strong>
+      <label><input type="checkbox" name="requestedServices" value="Planejamento da mudança"> Planejamento da mudança</label>
+      <label><input type="checkbox" name="requestedServices" value="Pesquisa de moradia"> Pesquisa de moradia</label>
+      <label><input type="checkbox" name="requestedServices" value="Currículo e emprego"> Currículo e emprego</label>
+      <label><input type="checkbox" name="requestedServices" value="Orientação sobre serviços locais"> Orientação sobre serviços locais</label>
+      <label><input type="checkbox" name="requestedServices" value="Organização de documentos"> Organização de documentos</label>
+      <label><input type="checkbox" name="requestedServices" value="Plano de chegada"> Plano de chegada</label>
+      <label><input type="checkbox" name="requestedServices" value="Outro serviço"> Outro serviço</label>
+    </div>
+
+    <label class="field full" for="requestCity">
+      Cidade ou região
+      <input id="requestCity" type="text" maxlength="120" placeholder="Ex.: Orlando, Florida">
+    </label>
+
+    <label class="field full" for="requestDetails">
+      Observações
+      <textarea id="requestDetails" rows="4" maxlength="2000" placeholder="Conte um pouco mais sobre o que você precisa. Não informe senhas, SSN ou números de documentos."></textarea>
+    </label>
+
+    <div class="calc-actions full">
+      <button class="button" id="submitServiceRequest" type="button">Enviar solicitação</button>
+      <span id="requestStatus" class="calc-note" role="status" aria-live="polite"></span>
+    </div>
+  </div>
+</div>
+
+<div class="comparison" id="minhas-solicitacoes">
+  <h3>Minhas solicitações</h3>
+  <p class="calc-note">Aqui você poderá acompanhar os pedidos enviados, consultar o andamento e verificar as propostas do Viva USA.</p>
+  <div id="myServiceRequests">
+    <p class="calc-note">Entre na sua conta para consultar suas solicitações.</p>
+  </div>
+</div>
+
       <p class="calc-note">Importante: o catálogo de assistência paga representa serviços planejados, ainda não disponíveis para contratação neste site. O Viva USA não oferece aconselhamento jurídico, imigração, fiscal ou médico, nem garante aprovação de aluguel, emprego ou benefícios.</p>
     </section> 
 </section>
@@ -1639,20 +1653,7 @@ document.getElementById("copyResume").addEventListener("click", async () => {
   try { await navigator.clipboard.writeText(output.value); status.textContent = "Currículo copiado."; }
   catch (error) { output.focus(); output.select(); status.textContent = "Selecione o texto e copie manualmente."; }
 });
-document.getElementById("buildRequest").addEventListener("click", () => {
-  const service = document.getElementById("requestService").value;
-  const city = document.getElementById("requestCity").value.trim() || "Ainda não definida";
-  const details = document.getElementById("requestDetails").value.trim() || "Ainda não informado";
-  document.getElementById("requestOutput").value = `PEDIDO DE ASSISTÊNCIA — VIVA USA\nAssunto: ${service}\nCidade/região: ${city}\nNecessidade: ${details}\n\nResumo preparado localmente pelo usuário. A contratação depende da confirmação de disponibilidade, escopo e preço.`;
-  document.getElementById("requestStatus").textContent = "Resumo preparado neste dispositivo; nada foi enviado.";
-});
-document.getElementById("copyRequest").addEventListener("click", async () => {
-  const output = document.getElementById("requestOutput");
-  const status = document.getElementById("requestStatus");
-  if (!output.value.trim()) { status.textContent = "Monte o resumo antes de copiar."; return; }
-  try { await navigator.clipboard.writeText(output.value); status.textContent = "Resumo copiado."; }
-  catch (error) { output.focus(); output.select(); status.textContent = "Selecione o texto e copie manualmente."; }
-});
+
 const courseStorageKey = "vivaUSA_saved_courses_v1";
 let savedCourses = [];
 let editingCourseIndex = null;
@@ -1930,7 +1931,8 @@ const providerStorageKey = "vivaUSA_saved_providers_v1";
 let savedProviders = [];
 function renderSavedProviders() {
   const container = document.getElementById("savedProviders");
-  if (!savedProviders.length) { container.innerHTML = '<p class="calc-note">Nenhum serviço salvo ainda.</p>'; return; }
+if (!container) return;
+if (!savedProviders.length) { container.innerHTML = '<p class="calc-note">Nenhum serviço salvo ainda.</p>'; return; }
   container.replaceChildren();
   savedProviders.forEach((provider, index) => {
     const card = document.createElement("article"); card.className = "saved-provider";
@@ -1961,19 +1963,7 @@ try {
   const storedProviders = JSON.parse(localStorage.getItem(providerStorageKey) || "[]");
   if (Array.isArray(storedProviders)) savedProviders = storedProviders.filter(item => item && typeof item.name === "string" && ["Para avaliar", "Contato realizado", "Orçamento recebido", "Contratado", "Não escolhido"].includes(item.status) && (!item.url || item.url.startsWith("https://")));
 } catch (error) { savedProviders = []; }
-document.getElementById("saveProvider").addEventListener("click", () => {
-  const name = document.getElementById("providerName").value.trim();
-  const url = document.getElementById("providerUrl").value.trim();
-  const priceText = document.getElementById("providerPrice").value;
-  const price = Number(priceText);
-  if (!name) { document.getElementById("providerStatusMessage").textContent = "Informe a empresa ou o prestador."; return; }
-  if (priceText && (!Number.isFinite(price) || price < 0)) { document.getElementById("providerStatusMessage").textContent = "Confira o preço informado."; return; }
-  if (url && !/^https:\/\//i.test(url)) { document.getElementById("providerStatusMessage").textContent = "O link deve começar com https://."; return; }
-  savedProviders.push({name, category:document.getElementById("providerCategory").value, city:document.getElementById("providerCity").value.trim(), price:priceText ? price : 0, status:document.getElementById("providerStatus").value, contact:document.getElementById("providerContact").value.trim(), url, notes:document.getElementById("providerNotes").value.trim()});
-  persistSavedProviders("Serviço adicionado.");
-  ["providerName", "providerCity", "providerPrice", "providerContact", "providerUrl", "providerNotes"].forEach(id => { document.getElementById(id).value = ""; });
-  document.getElementById("providerStatus").value = "Para avaliar";
-});
+
 renderSavedProviders();
 const jobStorageKey = "vivaUSA_saved_jobs_v1";
 const jobStatuses = ["Quero me candidatar", "Candidatura enviada", "Entrevista marcada", "Entrevista realizada", "Oferta recebida", "Contratado", "Não selecionado"];
