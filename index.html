@@ -1207,6 +1207,74 @@ function setAccountState(user) {
   if (accountLogout) accountLogout.hidden = !user;
   if (user) Promise.resolve().then(() => loadCloudData(user));
 }
+  
+document.getElementById("submitServiceRequest")?.addEventListener("click", async () => {
+  const button = document.getElementById("submitServiceRequest");
+  const status = document.getElementById("requestStatus");
+  const city = document.getElementById("requestCity").value.trim();
+  const details = document.getElementById("requestDetails").value.trim();
+
+  const services = Array.from(
+    document.querySelectorAll('input[name="requestedServices"]:checked')
+  ).map(input => input.value);
+
+  if (!supabaseClient) {
+    status.textContent = "Serviço de contas indisponível. Tente novamente mais tarde.";
+    return;
+  }
+
+  if (!services.length) {
+    status.textContent = "Selecione pelo menos um serviço.";
+    return;
+  }
+
+  const { data: { session }, error: sessionError } =
+    await supabaseClient.auth.getSession();
+
+  if (sessionError || !session?.user) {
+    status.textContent = "Entre na sua conta antes de enviar uma solicitação.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Enviando sua solicitação...";
+
+  try {
+    const { error } = await supabaseClient
+      .from("service_requests")
+      .insert({
+        user_id: session.user.id,
+        services,
+        city,
+        details
+      });
+
+    if (error) throw error;
+
+    const { data, error: loadError } = await supabaseClient
+      .from("service_requests")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
+
+    if (loadError) throw loadError;
+
+    renderServiceRequests(data || []);
+
+    document.querySelectorAll('input[name="requestedServices"]:checked')
+      .forEach(input => { input.checked = false; });
+
+    document.getElementById("requestCity").value = "";
+    document.getElementById("requestDetails").value = "";
+
+    status.textContent = "Solicitação enviada com sucesso!";
+  } catch (error) {
+    status.textContent = "Não foi possível enviar: " + error.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
 if (!supabaseClient) {
   showAccountStatus("Não foi possível carregar o serviço de contas. Atualize a página e tente novamente.");
 } else {
@@ -1989,6 +2057,49 @@ function renderSavedJobs() {
   });
   updateDashboardCounts();
 }
+  
+function renderServiceRequests(requests = []) {
+  const container = document.getElementById("myServiceRequests");
+  if (!container) return;
+
+  container.replaceChildren();
+
+  if (!requests.length) {
+    const empty = document.createElement("p");
+    empty.className = "calc-note";
+    empty.textContent = "Você ainda não enviou nenhuma solicitação.";
+    container.appendChild(empty);
+    return;
+  }
+
+  requests.forEach(request => {
+    const card = document.createElement("article");
+    card.className = "saved-provider";
+
+    const title = document.createElement("h4");
+    title.textContent = (request.services || []).join(" · ") || "Solicitação de assistência";
+
+    const details = document.createElement("p");
+    details.textContent = request.city || "Cidade não informada";
+
+    const status = document.createElement("p");
+    status.textContent = "Status: " + (request.status || "Recebido");
+
+    const date = document.createElement("p");
+    date.textContent = "Enviado em: " + new Date(request.created_at).toLocaleDateString("pt-BR");
+
+    card.append(title, details, status, date);
+
+    if (request.details) {
+      const notes = document.createElement("p");
+      notes.textContent = request.details;
+      card.appendChild(notes);
+    }
+
+    container.appendChild(card);
+  });
+}
+
 function persistSavedJobs(message) {
   try { localStorage.setItem(jobStorageKey, JSON.stringify(savedJobs)); document.getElementById("jobSaveStatus").textContent = message + " Salvo neste dispositivo."; }
   catch (error) { document.getElementById("jobSaveStatus").textContent = "Não foi possível salvar neste navegador."; }
@@ -2036,7 +2147,7 @@ async function loadCloudData(user) {
   showAccountStatus("Conta conectada. Carregando seus dados online...");
 
   try {
-    const tables = ["saved_rentals", "saved_courses", "saved_providers", "saved_jobs"];
+   const tables = ["saved_rentals", "saved_courses", "saved_providers", "saved_jobs", "service_requests"];
     const results = await Promise.all(
       tables.map(table => supabaseClient.from(table).select("*").eq("user_id", user.id))
     );
@@ -2050,7 +2161,7 @@ async function loadCloudData(user) {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user?.id !== user.id) return;
 
-    const [rentals, courses, providers, jobs] = results.map(result => result.data || []);
+    const [rentals, courses, providers, jobs, serviceRequests] = results.map(result => result.data || []);
 
     savedRentals = rentals.map(x => ({
       id:x.id, name:x.property_name || "", city:x.city || "", beds:x.bedrooms || "",
@@ -2091,6 +2202,7 @@ async function loadCloudData(user) {
     renderSavedCourses();
     renderSavedProviders();
     renderSavedJobs();
+    renderServiceRequests(serviceRequests);
     updateDashboardCounts();
 
     cloudDataLoadedFor = user.id;
