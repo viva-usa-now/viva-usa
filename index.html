@@ -2426,11 +2426,17 @@ const serviceRequests = serviceRequestsData || [];
     renderSavedJobs();
     renderServiceRequests(serviceRequests);
     renderAdminRequests(isAdmin ? serviceRequests : [], profilesByUser);
-        const usersCountElement = document.getElementById("adminUsersCount");
+ const usersCountElement = document.getElementById("adminUsersCount");
 
-    if (usersCountElement) {
-      usersCountElement.textContent = isAdmin ? adminUsersCount : "—";
-    }
+if (usersCountElement) {
+  usersCountElement.textContent = isAdmin ? adminUsersCount : "—";
+}
+
+const requestsCountElement = document.getElementById("adminRequestsCount");
+
+if (requestsCountElement) {
+  requestsCountElement.textContent = isAdmin ? serviceRequests.length : "—";
+}
     updateDashboardCounts();
 
     cloudDataLoadedFor = user.id;
