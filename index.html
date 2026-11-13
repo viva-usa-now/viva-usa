@@ -2278,6 +2278,18 @@ async function loadCloudData(user) {
     const adminEmail = "marciofrecasens@gmail.com";
     const isAdmin = user.email?.toLowerCase() === adminEmail.toLowerCase();
 
+    let adminUsersCount = 0;
+
+    if (isAdmin) {
+      const { count, error } = await supabaseClient
+        .from("profiles")
+        .select("user_id", { count: "exact", head: true });
+
+      if (error) throw error;
+
+      adminUsersCount = count || 0;
+    }
+
     let requestsQuery = supabaseClient
       .from("service_requests")
       .select("*");
@@ -2335,6 +2347,11 @@ const serviceRequests = serviceRequestsData || [];
     renderSavedJobs();
     renderServiceRequests(serviceRequests);
     renderAdminRequests(isAdmin ? serviceRequests : []);
+        const usersCountElement = document.getElementById("adminUsersCount");
+
+    if (usersCountElement) {
+      usersCountElement.textContent = isAdmin ? adminUsersCount : "—";
+    }
     updateDashboardCounts();
 
     cloudDataLoadedFor = user.id;
