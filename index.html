@@ -2170,6 +2170,50 @@ function renderServiceRequests(requests = []) {
   });
 }
 
+function renderAdminRequests(requests = []) {
+  const container = document.getElementById("adminRequestsList");
+  if (!container) return;
+
+  container.replaceChildren();
+
+  if (!requests.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "Nenhuma solicitação recebida até o momento.";
+    container.appendChild(empty);
+    return;
+  }
+
+  requests.forEach(request => {
+    const card = document.createElement("article");
+    card.className = "saved-provider";
+
+    const title = document.createElement("h4");
+    title.textContent = (request.services || []).join(" · ") || "Solicitação de assistência";
+
+    const details = document.createElement("p");
+    details.textContent = "Cidade: " + (request.city || "Não informada");
+
+    const status = document.createElement("p");
+    status.textContent = "Status: " + (request.status || "Recebido");
+
+    const date = document.createElement("p");
+    date.textContent = "Enviado em: " +
+      (request.created_at
+        ? new Date(request.created_at).toLocaleDateString("pt-BR")
+        : "Data não informada");
+
+    card.append(title, details, status, date);
+
+    if (request.details) {
+      const notes = document.createElement("p");
+      notes.textContent = request.details;
+      card.appendChild(notes);
+    }
+
+    container.appendChild(card);
+  });
+}
+
 function persistSavedJobs(message) {
   try { localStorage.setItem(jobStorageKey, JSON.stringify(savedJobs)); document.getElementById("jobSaveStatus").textContent = message + " Salvo neste dispositivo."; }
   catch (error) { document.getElementById("jobSaveStatus").textContent = "Não foi possível salvar neste navegador."; }
@@ -2290,6 +2334,7 @@ const serviceRequests = serviceRequestsData || [];
     renderSavedProviders();
     renderSavedJobs();
     renderServiceRequests(serviceRequests);
+    renderAdminRequests(isAdmin ? serviceRequests : []);
     updateDashboardCounts();
 
     cloudDataLoadedFor = user.id;
