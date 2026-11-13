@@ -1253,14 +1253,30 @@ const accountSignup = document.getElementById("accountSignup");
 const accountLogin = document.getElementById("accountLogin");
 const accountLogout = document.getElementById("accountLogout");
 function showAccountStatus(message) { if (accountStatus) accountStatus.textContent = message; }
+
 function setAccountState(user) {
   const email = user?.email || "";
-  showAccountStatus(user ? "Conectado como " + email + ". A conta está ativa neste dispositivo." : "Você ainda não entrou na sua conta.");
+  const adminEmail = "marciofrecasens@gmail.com";
+  const isAdmin = email.toLowerCase() === adminEmail.toLowerCase();
+
+  showAccountStatus(user
+    ? "Conectado como " + email + ". A conta está ativa neste dispositivo."
+    : "Você ainda não entrou na sua conta."
+  );
+
   if (accountSignup) accountSignup.hidden = !!user;
   if (accountLogin) accountLogin.hidden = !!user;
   if (accountLogout) accountLogout.hidden = !user;
+
+  const adminButton = document.querySelector('[data-open-tab="admin"]');
+  if (adminButton) adminButton.hidden = !isAdmin;
+
+  const adminPanel = document.getElementById("tab-admin");
+  if (!isAdmin && adminPanel) adminPanel.hidden = true;
+
   if (user) Promise.resolve().then(() => loadCloudData(user));
 }
+
   
 document.getElementById("submitServiceRequest")?.addEventListener("click", async () => {
   const button = document.getElementById("submitServiceRequest");
