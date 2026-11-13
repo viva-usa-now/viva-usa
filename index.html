@@ -2217,7 +2217,7 @@ async function loadCloudData(user) {
   showAccountStatus("Conta conectada. Carregando seus dados online...");
 
   try {
-   const tables = ["saved_rentals", "saved_courses", "saved_providers", "saved_jobs", "service_requests"];
+   const tables = ["saved_rentals", "saved_courses", "saved_providers", "saved_jobs"];
     const results = await Promise.all(
       tables.map(table => supabaseClient.from(table).select("*").eq("user_id", user.id))
     );
@@ -2231,8 +2231,25 @@ async function loadCloudData(user) {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session?.user?.id !== user.id) return;
 
-    const [rentals, courses, providers, jobs, serviceRequests] = results.map(result => result.data || []);
+    const adminEmail = "marciofrecasens@gmail.com";
+    const isAdmin = user.email?.toLowerCase() === adminEmail.toLowerCase();
 
+    let requestsQuery = supabaseClient
+      .from("service_requests")
+      .select("*");
+
+    if (!isAdmin) {
+      requestsQuery = requestsQuery.eq("user_id", user.id);
+    }
+
+    const { data: serviceRequestsData, error: requestsError } = await requestsQuery;
+
+    if (requestsError) throw requestsError;
+
+    
+   const [rentals, courses, providers, jobs] = results.map(result => result.data || []);
+const serviceRequests = serviceRequestsData || [];
+    
     savedRentals = rentals.map(x => ({
       id:x.id, name:x.property_name || "", city:x.city || "", beds:x.bedrooms || "",
       price:Number(x.monthly_rent || 0), url:x.listing_url || "", notes:x.notes || ""
