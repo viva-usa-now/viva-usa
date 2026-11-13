@@ -2170,6 +2170,7 @@ function renderServiceRequests(requests = []) {
   });
 }
 
+
 function renderAdminRequests(requests = []) {
   const container = document.getElementById("adminRequestsList");
   if (!container) return;
@@ -2202,7 +2203,55 @@ function renderAdminRequests(requests = []) {
         ? new Date(request.created_at).toLocaleDateString("pt-BR")
         : "Data não informada");
 
-    card.append(title, details, status, date);
+    const label = document.createElement("label");
+    label.textContent = "Alterar status: ";
+
+    const select = document.createElement("select");
+
+    ["Recebido", "Em andamento", "Concluído"].forEach(value => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      select.appendChild(option);
+    });
+
+    const currentStatus = request.status || "Recebido";
+    if (!["Recebido", "Em andamento", "Concluído"].includes(currentStatus)) {
+      const option = document.createElement("option");
+      option.value = currentStatus;
+      option.textContent = currentStatus;
+      select.appendChild(option);
+    }
+
+    select.value = currentStatus;
+
+    const message = document.createElement("p");
+
+    select.addEventListener("change", async () => {
+      select.disabled = true;
+      message.textContent = "Salvando...";
+
+      try {
+        const { error } = await supabaseClient
+          .from("service_requests")
+          .update({ status: select.value })
+          .eq("id", request.id);
+
+        if (error) throw error;
+
+        request.status = select.value;
+        status.textContent = "Status: " + request.status;
+        message.textContent = "Status atualizado com sucesso!";
+      } catch (error) {
+        select.value = currentStatus;
+        message.textContent = "Erro ao atualizar: " + error.message;
+      } finally {
+        select.disabled = false;
+      }
+    });
+
+    label.appendChild(select);
+    card.append(title, details, status, date, label, message);
 
     if (request.details) {
       const notes = document.createElement("p");
@@ -2213,6 +2262,7 @@ function renderAdminRequests(requests = []) {
     container.appendChild(card);
   });
 }
+
 
 function persistSavedJobs(message) {
   try { localStorage.setItem(jobStorageKey, JSON.stringify(savedJobs)); document.getElementById("jobSaveStatus").textContent = message + " Salvo neste dispositivo."; }
