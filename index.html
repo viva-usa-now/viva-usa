@@ -2171,7 +2171,7 @@ function renderServiceRequests(requests = []) {
 }
 
 
-function renderAdminRequests(requests = []) {
+function renderAdminRequests(requests = [], profilesByUser = {}) {
   const container = document.getElementById("adminRequestsList");
   if (!container) return;
 
@@ -2191,8 +2191,15 @@ function renderAdminRequests(requests = []) {
     const title = document.createElement("h4");
     title.textContent = (request.services || []).join(" · ") || "Solicitação de assistência";
 
-    const details = document.createElement("p");
-    details.textContent = "Cidade: " + (request.city || "Não informada");
+   const profile = profilesByUser[request.user_id] || {};
+
+const requester = document.createElement("p");
+requester.textContent = "Solicitante: " +
+  (profile.display_name || "Nome não informado");
+
+const details = document.createElement("p");
+details.textContent = "Cidade: " +
+  (profile.city_of_interest || request.city || "Não informada");
 
     const status = document.createElement("p");
     status.textContent = "Status: " + (request.status || "Recebido");
@@ -2251,7 +2258,7 @@ function renderAdminRequests(requests = []) {
     });
 
     label.appendChild(select);
-    card.append(title, details, status, date, label, message);
+    card.append(title, requester, details, status, date, label, message);
 
     if (request.details) {
       const notes = document.createElement("p");
@@ -2356,6 +2363,28 @@ async function loadCloudData(user) {
    const [rentals, courses, providers, jobs] = results.map(result => result.data || []);
 const serviceRequests = serviceRequestsData || [];
     
+    let adminProfiles = [];
+
+    if (isAdmin && serviceRequests.length > 0) {
+      const userIds = [...new Set(
+        serviceRequests.map(request => request.user_id).filter(Boolean)
+      )];
+
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("user_id, display_name, city_of_interest")
+        .in("user_id", userIds);
+
+      if (error) throw error;
+
+      adminProfiles = data || [];
+    }
+
+    const profilesByUser = Object.fromEntries(
+      adminProfiles.map(profile => [profile.user_id, profile])
+    );
+
+    
     savedRentals = rentals.map(x => ({
       id:x.id, name:x.property_name || "", city:x.city || "", beds:x.bedrooms || "",
       price:Number(x.monthly_rent || 0), url:x.listing_url || "", notes:x.notes || ""
@@ -2396,7 +2425,7 @@ const serviceRequests = serviceRequestsData || [];
     renderSavedProviders();
     renderSavedJobs();
     renderServiceRequests(serviceRequests);
-    renderAdminRequests(isAdmin ? serviceRequests : []);
+    renderAdminRequests(isAdmin ? serviceRequests : [], profilesByUser);
         const usersCountElement = document.getElementById("adminUsersCount");
 
     if (usersCountElement) {
