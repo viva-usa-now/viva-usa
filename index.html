@@ -2285,7 +2285,51 @@ details.textContent = "Cidade: " +
     select.value = currentStatus;
 
     const message = document.createElement("p");
+const historyButton = document.createElement("button");
+historyButton.type = "button";
+historyButton.textContent = "Ver histórico";
 
+const historyContainer = document.createElement("div");
+
+historyButton.addEventListener("click", async () => {
+  historyButton.disabled = true;
+  historyContainer.textContent = "Carregando histórico...";
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("service_request_history")
+      .select("*")
+      .eq("request_id", request.id)
+      .order("changed_at", { ascending: false });
+
+    if (error) throw error;
+
+    historyContainer.replaceChildren();
+
+    if (!data || data.length === 0) {
+      historyContainer.textContent = "Nenhuma alteração registrada.";
+    } else {
+      data.forEach(item => {
+        const entry = document.createElement("p");
+
+        const dateText = new Date(item.changed_at)
+          .toLocaleString("pt-BR");
+
+        entry.textContent =
+          (item.previous_status || "Inicial") +
+          " → " + item.new_status +
+          " | " + dateText;
+
+        historyContainer.appendChild(entry);
+      });
+    }
+  } catch (error) {
+    historyContainer.textContent =
+      "Erro ao carregar histórico: " + error.message;
+  } finally {
+    historyButton.disabled = false;
+  }
+});
     select.addEventListener("change", async () => {
       select.disabled = true;
       message.textContent = "Salvando...";
@@ -2336,7 +2380,17 @@ status.textContent = "Status: " + request.status;
     });
 
     label.appendChild(select);
-    card.append(title, requester, details, status, date, label, message);
+    card.append(
+  title,
+  requester,
+  details,
+  status,
+  date,
+  label,
+  message,
+  historyButton,
+  historyContainer
+);
 
     if (request.details) {
       const notes = document.createElement("p");
