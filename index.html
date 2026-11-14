@@ -513,18 +513,32 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     <p>Painel de controle e gerenciamento da plataforma.</p>
   </div>
 
-  <div class="dashboard-grid">
-    <div class="dashboard-card">
-      <h3>Usuários cadastrados</h3>
-      <strong id="adminUsersCount">0</strong>
-    </div>
-
-    <div class="dashboard-card">
-      <h3>Solicitações recebidas</h3>
-      <strong id="adminRequestsCount">0</strong>
-    </div>
+ <div class="dashboard-grid">
+  <div class="dashboard-card">
+    <h3>Usuários cadastrados</h3>
+    <strong id="adminUsersCount">0</strong>
   </div>
 
+  <div class="dashboard-card">
+    <h3>Total de solicitações</h3>
+    <strong id="adminRequestsCount">0</strong>
+  </div>
+
+  <div class="dashboard-card">
+    <h3>Recebidas</h3>
+    <strong id="adminReceivedCount">0</strong>
+  </div>
+
+  <div class="dashboard-card">
+    <h3>Em andamento</h3>
+    <strong id="adminInProgressCount">0</strong>
+  </div>
+
+  <div class="dashboard-card">
+    <h3>Concluídas</h3>
+    <strong id="adminCompletedCount">0</strong>
+  </div>
+</div>
   <div class="section-heading">
     <h3>Solicitações de assistência</h3>
     <p>Acompanhe os pedidos enviados pelos usuários.</p>
@@ -2284,8 +2298,34 @@ details.textContent = "Cidade: " +
 
         if (error) throw error;
 
-        request.status = select.value;
-        status.textContent = "Status: " + request.status;
+       request.status = select.value;
+
+// Atualiza os indicadores do painel administrativo
+const currentRequests = window.currentAdminRequests || [];
+
+const receivedCount = document.getElementById("adminReceivedCount");
+const progressCount = document.getElementById("adminInProgressCount");
+const completedCount = document.getElementById("adminCompletedCount");
+
+if (receivedCount) {
+  receivedCount.textContent = currentRequests.filter(
+    r => (r.status || "Recebido") === "Recebido"
+  ).length;
+}
+
+if (progressCount) {
+  progressCount.textContent = currentRequests.filter(
+    r => r.status === "Em andamento"
+  ).length;
+}
+
+if (completedCount) {
+  completedCount.textContent = currentRequests.filter(
+    r => r.status === "Concluído"
+  ).length;
+}
+
+status.textContent = "Status: " + request.status;
         message.textContent = "Status atualizado com sucesso!";
       } catch (error) {
         select.value = currentStatus;
@@ -2474,9 +2514,34 @@ if (usersCountElement) {
 }
 
 const requestsCountElement = document.getElementById("adminRequestsCount");
+const receivedCountElement = document.getElementById("adminReceivedCount");
+const progressCountElement = document.getElementById("adminInProgressCount");
+const completedCountElement = document.getElementById("adminCompletedCount");
 
-if (requestsCountElement) {
-  requestsCountElement.textContent = isAdmin ? serviceRequests.length : "—";
+if (isAdmin) {
+  if (requestsCountElement) {
+    requestsCountElement.textContent = serviceRequests.length;
+  }
+
+  if (receivedCountElement) {
+    receivedCountElement.textContent =
+      serviceRequests.filter(r => (r.status || "Recebido") === "Recebido").length;
+  }
+
+  if (progressCountElement) {
+    progressCountElement.textContent =
+      serviceRequests.filter(r => r.status === "Em andamento").length;
+  }
+
+  if (completedCountElement) {
+    completedCountElement.textContent =
+      serviceRequests.filter(r => r.status === "Concluído").length;
+  }
+} else {
+  [requestsCountElement, receivedCountElement, progressCountElement, completedCountElement]
+    .forEach(element => {
+      if (element) element.textContent = "—";
+    });
 }
     updateDashboardCounts();
 
