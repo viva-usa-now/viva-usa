@@ -539,9 +539,17 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   <option value="Concluído">Concluído</option>
 </select>
 
+<input
+  type="text"
+  id="adminRequestSearch"
+  placeholder="Buscar por nome ou cidade..."
+  oninput="renderAdminRequests(window.currentAdminRequests || [], window.currentAdminProfiles || {})"
+  style="width:100%; padding:10px; margin:12px 0;"
+>
+
 <div id="adminRequestsList">
   <p>Nenhuma solicitação carregada.</p>
-</div></section>
+</div>
   
 <section style="padding:45px 22px;background:#f4f7fa;">
   <div style="max-width:1100px;margin:auto;text-align:center;">
@@ -2183,15 +2191,28 @@ function renderAdminRequests(requests = [], profilesByUser = {}) {
    const container = document.getElementById("adminRequestsList");
   if (!container) return;
 
-  const filter = document.getElementById("adminRequestFilter");
-  const selectedFilter = filter ? filter.value : "Todas";
+ const filter = document.getElementById("adminRequestFilter");
+const selectedFilter = filter ? filter.value : "Todas";
 
-  if (selectedFilter !== "Todas") {
-    requests = requests.filter(request =>
-      (request.status || "Recebido") === selectedFilter
-    );
-  }
+if (selectedFilter !== "Todas") {
+  requests = requests.filter(request =>
+    (request.status || "Recebido") === selectedFilter
+  );
+}
 
+const searchInput = document.getElementById("adminRequestSearch");
+const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+if (searchTerm) {
+  requests = requests.filter(request => {
+    const profile = profilesByUser[request.user_id] || {};
+
+    const name = (profile.display_name || "").toLowerCase();
+    const city = (profile.city_of_interest || request.city || "").toLowerCase();
+
+    return name.includes(searchTerm) || city.includes(searchTerm);
+  });
+}
   container.replaceChildren();
 
   if (!requests.length) {
