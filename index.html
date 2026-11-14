@@ -530,10 +530,18 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
     <p>Acompanhe os pedidos enviados pelos usuários.</p>
   </div>
 
-  <div id="adminRequestsList">
-    <p>Nenhuma solicitação carregada.</p>
-  </div>
-</section>
+<label for="adminRequestFilter">Filtrar solicitações:</label>
+
+<select id="adminRequestFilter" onchange="renderAdminRequests(window.currentAdminRequests || [], window.currentAdminProfiles || {})">
+  <option value="Todas">Todas</option>
+  <option value="Recebido">Recebido</option>
+  <option value="Em andamento">Em andamento</option>
+  <option value="Concluído">Concluído</option>
+</select>
+
+<div id="adminRequestsList">
+  <p>Nenhuma solicitação carregada.</p>
+</div></section>
   
 <section style="padding:45px 22px;background:#f4f7fa;">
   <div style="max-width:1100px;margin:auto;text-align:center;">
@@ -2172,8 +2180,17 @@ function renderServiceRequests(requests = []) {
 
 
 function renderAdminRequests(requests = [], profilesByUser = {}) {
-  const container = document.getElementById("adminRequestsList");
+   const container = document.getElementById("adminRequestsList");
   if (!container) return;
+
+  const filter = document.getElementById("adminRequestFilter");
+  const selectedFilter = filter ? filter.value : "Todas";
+
+  if (selectedFilter !== "Todas") {
+    requests = requests.filter(request =>
+      (request.status || "Recebido") === selectedFilter
+    );
+  }
 
   container.replaceChildren();
 
@@ -2425,7 +2442,10 @@ const serviceRequests = serviceRequestsData || [];
     renderSavedProviders();
     renderSavedJobs();
     renderServiceRequests(serviceRequests);
-    renderAdminRequests(isAdmin ? serviceRequests : [], profilesByUser);
+   window.currentAdminRequests = isAdmin ? serviceRequests : [];
+window.currentAdminProfiles = profilesByUser;
+
+renderAdminRequests(window.currentAdminRequests, window.currentAdminProfiles);
  const usersCountElement = document.getElementById("adminUsersCount");
 
 if (usersCountElement) {
