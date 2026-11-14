@@ -1367,9 +1367,7 @@ document.getElementById("submitServiceRequest")?.addEventListener("click", async
     document.getElementById("requestCity").value = "";
     document.getElementById("requestDetails").value = "";
 
-   status.textContent = notificationError
-  ? "Solicitação salva, mas houve um problema no envio do e-mail."
-  : "Solicitação enviada com sucesso! Uma notificação foi enviada ao administrador.";
+  status.textContent = "Solicitação enviada com sucesso!";
   } catch (error) {
     status.textContent = "Não foi possível enviar: " + error.message;
   } finally {
@@ -2305,29 +2303,7 @@ historyButton.addEventListener("click", async () => {
       .order("changed_at", { ascending: false });
 
     if (error) throw error;
-    let notificationError = null;
-
-try {
-  const { error: emailError } = await supabaseClient.functions.invoke(
-    "notify-new-request",
-    {
-      body: {
-        name: document.getElementById("profileName")?.value.trim()
-          || session.user.email
-          || "Usuário Viva USA",
-        city,
-        services,
-        details
-      }
-    }
-  );
-
-  if (emailError) notificationError = emailError;
-
-} catch (emailError) {
-  notificationError = emailError;
-}
-
+   
     historyContainer.replaceChildren();
 
     if (!data || data.length === 0) {
