@@ -1353,7 +1353,21 @@ document.getElementById("submitServiceRequest")?.addEventListener("click", async
       });
 
     if (error) throw error;
+const { error: notificationError } = await supabaseClient.functions.invoke(
+  "notify-new-request",
+  {
+    body: {
+      name: profileName || session.user.email || "Usuário Viva USA",
+      city,
+      services,
+      details
+    }
+  }
+);
 
+if (notificationError) {
+  console.error("Erro ao enviar notificação:", notificationError);
+}
     const { data, error: loadError } = await supabaseClient
       .from("service_requests")
       .select("*")
