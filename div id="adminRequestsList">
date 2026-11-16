@@ -564,7 +564,9 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
 <div id="adminRequestsList">
   <p>Nenhuma solicitação carregada.</p>
 </div>
-  
+
+</section>
+
 <section style="padding:45px 22px;background:#f4f7fa;">
   <div style="max-width:1100px;margin:auto;text-align:center;">
     <div class="eyebrow">BEM-VINDO AO VIVA USA</div>
