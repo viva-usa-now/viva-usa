@@ -1351,8 +1351,16 @@ document.getElementById("submitServiceRequest")?.addEventListener("click", async
 
   try {
     const { error } = await supabaseClient
-      .from("service_requests")
-      .insert({
+      
+{
+  user_id: session.user.id,
+  services,
+  city,
+  details,
+  contact_phone: document.getElementById("requestPhone").value.trim(),
+  contact_email: session.user.email || ""
+}
+
         user_id: session.user.id,
         services,
         city,
