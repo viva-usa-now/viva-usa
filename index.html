@@ -1349,25 +1349,20 @@ document.getElementById("submitServiceRequest")?.addEventListener("click", async
   button.disabled = true;
   status.textContent = "Enviando sua solicitação...";
 
-  try {
+   try {
     const { error } = await supabaseClient
-      
-{
-  user_id: session.user.id,
-  services,
-  city,
-  details,
-  contact_phone: document.getElementById("requestPhone").value.trim(),
-  contact_email: session.user.email || ""
-}
-
+      .from("service_requests")
+      .insert({
         user_id: session.user.id,
         services,
         city,
-        details
+        details,
+        contact_phone: document.getElementById("requestPhone").value.trim(),
+        contact_email: session.user.email || ""
       });
 
     if (error) throw error;
+
 const { error: notificationError } = await supabaseClient.functions.invoke(
   "notify-new-request",
   {
@@ -1398,7 +1393,7 @@ if (notificationError) {
 
     document.getElementById("requestCity").value = "";
     document.getElementById("requestDetails").value = "";
-
+document.getElementById("requestPhone").value = "";
   status.textContent = "Solicitação enviada com sucesso!";
   } catch (error) {
     status.textContent = "Não foi possível enviar: " + error.message;
