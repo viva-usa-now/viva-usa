@@ -1366,12 +1366,14 @@ document.getElementById("submitServiceRequest")?.addEventListener("click", async
 const { error: notificationError } = await supabaseClient.functions.invoke(
   "notify-new-request",
   {
-    body: {
-      name: profileName || session.user.email || "Usuário Viva USA",
-      city,
-      services,
-      details
-    }
+   body: {
+  name: profileName || session.user.email || "Usuário Viva USA",
+  email: session.user.email || "",
+  phone: document.getElementById("requestPhone").value.trim(),
+  city,
+  services,
+  details
+}
   }
 );
 
@@ -2278,7 +2280,14 @@ requester.textContent = "Solicitante: " +
 
 const details = document.createElement("p");
 details.textContent = "Cidade: " +
-  (profile.city_of_interest || request.city || "Não informada");
+  (request.city || profile.city_of_interest || "Não informada");
+    const phone = document.createElement("p");
+phone.textContent = "Telefone: " +
+  (request.contact_phone || "Não informado");
+
+const email = document.createElement("p");
+email.textContent = "E-mail: " +
+  (request.contact_email || "Não informado");
 
     const status = document.createElement("p");
     status.textContent = "Status: " + (request.status || "Recebido");
@@ -2406,11 +2415,13 @@ status.textContent = "Status: " + request.status;
       }
     });
 
-    label.appendChild(select);
-    card.append(
+   label.appendChild(select);
+card.append(
   title,
   requester,
   details,
+  phone,
+  email,
   status,
   date,
   label,
