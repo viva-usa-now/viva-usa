@@ -2729,9 +2729,14 @@ updateDashboardCounts();
     button.textContent = "Preparando pagamento...";
 
     const { data, error } = await supabaseClient.functions.invoke(
-      "create-checkout-session",
-      { body: {} }
-    );
+  "create-checkout-session",
+  {
+    body: {},
+    headers: {
+      Authorization: `Bearer ${sessionData.session.access_token}`
+    }
+  }
+);
 
     if (error) throw error;
 
