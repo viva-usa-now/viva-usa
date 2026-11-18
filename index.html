@@ -2732,9 +2732,10 @@ updateDashboardCounts();
   "create-checkout-session",
   {
     body: {},
-    headers: {
-      Authorization: `Bearer ${sessionData.session.access_token}`
-    }
+   headers: {
+  Authorization: `Bearer ${sessionData.session.access_token}`,
+  apikey: SUPABASE_PUBLISHABLE_KEY
+}
   }
 );
 
