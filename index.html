@@ -2710,6 +2710,45 @@ updateJobSearchLinks();
 updateLearningSearchLinks();
 renderSavedRentals();
 updateDashboardCounts();
+  document.getElementById("buyInitialAssistance")?.addEventListener("click", async () => {
+  const button = document.getElementById("buyInitialAssistance");
+
+  try {
+    if (!supabaseClient) {
+      throw new Error("Conexão com o sistema indisponível.");
+    }
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+
+    if (!sessionData.session) {
+      alert("Faça login no Viva USA para continuar com a contratação.");
+      return;
+    }
+
+    button.disabled = true;
+    button.textContent = "Preparando pagamento...";
+
+    const { data, error } = await supabaseClient.functions.invoke(
+      "create-checkout-session",
+      { body: {} }
+    );
+
+    if (error) throw error;
+
+    if (!data?.url) {
+      throw new Error("Não foi possível gerar o link de pagamento.");
+    }
+
+    window.location.href = data.url;
+
+  } catch (error) {
+    console.error("Erro no pagamento:", error);
+    alert(error.message || "Não foi possível iniciar o pagamento. Tente novamente.");
+    button.disabled = false;
+    button.textContent = "Contratar agora";
+  }
+});
 </script>
+
 </body>
 </html>
