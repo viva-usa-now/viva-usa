@@ -2710,6 +2710,59 @@ updateJobSearchLinks();
 updateLearningSearchLinks();
 renderSavedRentals();
 updateDashboardCounts();
+  
+async function verifyStripePayment() {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("payment") !== "success") return;
+
+  const sessionId = params.get("session_id");
+
+  if (!sessionId) {
+    alert("Não foi possível identificar o pagamento.");
+    return;
+  }
+
+  const { data: sessionData } =
+    await supabaseClient.auth.getSession();
+
+  if (!sessionData.session) {
+    alert("Entre na sua conta para confirmar o pagamento.");
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient.functions.invoke(
+      "verify-payment",
+      {
+        body: { session_id: sessionId },
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+          apikey: SUPABASE_PUBLISHABLE_KEY
+        }
+      }
+    );
+
+  if (error) throw error;
+
+  if (data?.paid) {
+    alert("Pagamento confirmado! Obrigado por contratar o Viva USA.");
+  } else {
+    alert("Seu pagamento ainda está sendo processado. Consulte novamente em instantes.");
+  }
+
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname
+  );
+}
+
+verifyStripePayment().catch(error => {
+  console.error("Erro ao verificar pagamento:", error);
+  alert("Não foi possível confirmar o pagamento. Entre em contato com o Viva USA.");
+});
+
   document.getElementById("buyInitialAssistance")?.addEventListener("click", async () => {
   const button = document.getElementById("buyInitialAssistance");
 
