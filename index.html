@@ -689,28 +689,117 @@ h1, h2, h3 { font-family: var(--site-font-heading); }
   <h3>Assistência Inicial Viva USA</h3>
   <p>Atendimento individual para ajudar você a organizar suas primeiras necessidades e próximos passos nos Estados Unidos.</p>
   <div class="package-price">US$ 49,00 · Pagamento único</div>
-  <button class="button" type="button" id="buyInitialAssistance">Contratar agora</button>
+ <button class="button" type="button" id="buyInitialAssistance" data-product-key="assistencia_inicial">Contratar agora</button>
 </article>
       </div>
-      <div class="comparison" id="pacotes-atendimento">
-        <h3 style="margin:0 0 8px">Formatos de atendimento previstos</h3>
-        <p class="calc-note">Estrutura inicial para organizar a oferta. Os pacotes ainda não estão à venda e não têm preço definido; cada proposta deverá informar exatamente o que inclui, prazo estimado, limites e valor antes de qualquer pagamento.</p>
-        <div class="package-grid">
-          <article class="package-card"><span class="service-type">Formato 1</span><h3>Orientação pontual</h3><p>Para quem tem uma dúvida prática ou precisa organizar os próximos passos.</p><ul><li>Conversa inicial sobre a necessidade</li><li>Lista de ações e fontes relevantes</li><li>Resumo do que ficou combinado</li></ul><div class="package-price">Orçamento informado previamente</div></article>
-          <article class="package-card"><span class="service-type">Formato 2</span><h3>Pesquisa assistida</h3><p>Para quem precisa comparar opções e reunir informações de uma cidade ou serviço.</p><ul><li>Definição dos critérios da pesquisa</li><li>Levantamento de opções públicas</li><li>Comparativo organizado com links</li></ul><div class="package-price">Orçamento informado previamente</div></article>
-          <article class="package-card"><span class="service-type">Formato 3</span><h3>Plano de chegada</h3><p>Para quem deseja estruturar várias tarefas da mudança em uma sequência prática.</p><ul><li>Checklist por prioridade</li><li>Organização de etapas e prazos</li><li>Orientação informativa de acompanhamento</li></ul><div class="package-price">Orçamento informado previamente</div></article>
-        </div>
-      </div>
-      <div class="comparison" id="como-funciona">
-        <h3 style="margin:0 0 8px">Como será o atendimento</h3>
-        <div class="service-steps">
-          <div class="service-step"><strong>1. Você explica</strong><p>Escolhe o assunto e descreve o que precisa, sem enviar dados sensíveis.</p></div>
-          <div class="service-step"><strong>2. Analisamos</strong><p>A equipe verifica se a solicitação está dentro dos serviços oferecidos.</p></div>
-          <div class="service-step"><strong>3. Você recebe a proposta</strong><p>Escopo, entregáveis, prazo e preço são apresentados antes da contratação.</p></div>
-          <div class="service-step"><strong>4. Você decide</strong><p>O trabalho só começa após sua aprovação expressa e a confirmação das condições.</p></div>
-        </div>
-      </div>
-    
+      
+<div class="comparison" id="pacotes-atendimento">
+  <h3 style="margin:0 0 8px">Serviços e pacotes Viva USA</h3>
+  <p class="calc-note">Escolha o serviço que melhor atende às suas necessidades. Todos os pagamentos são únicos, realizados com segurança pelo Stripe.</p>
+
+  <div class="package-grid">
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Planejamento da mudança</h3>
+      <p>Organização das principais etapas para preparar sua mudança para os Estados Unidos.</p>
+      <div class="package-price">US$ 149,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="planejamento_mudanca">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Pesquisa de moradia</h3>
+      <p>Ajuda para pesquisar e comparar opções de aluguel de acordo com suas necessidades.</p>
+      <div class="package-price">US$ 149,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="pesquisa_moradia">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Currículo e emprego</h3>
+      <p>Orientação para preparar seu currículo e organizar sua busca por oportunidades profissionais.</p>
+      <div class="package-price">US$ 129,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="curriculo_emprego">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Orientação sobre serviços locais</h3>
+      <p>Informações para conhecer serviços e recursos disponíveis na sua região.</p>
+      <div class="package-price">US$ 79,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="orientacao_servicos">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Organização de documentos</h3>
+      <p>Ajuda para organizar documentos e preparar uma lista de providências importantes.</p>
+      <div class="package-price">US$ 89,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="organizacao_documentos">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Serviço individual</span>
+      <h3>Plano de chegada</h3>
+      <p>Checklist organizado para orientar suas primeiras etapas após chegar aos Estados Unidos.</p>
+      <div class="package-price">US$ 129,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="plano_chegada">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Pacote especial</span>
+      <h3>Pacote Chegada Tranquila</h3>
+      <p>Uma combinação de serviços para organizar sua preparação e chegada.</p>
+      <ul>
+        <li>Assistência Inicial</li>
+        <li>Planejamento da mudança</li>
+        <li>Plano de chegada</li>
+        <li>Uma sessão de acompanhamento</li>
+      </ul>
+      <div class="package-price">US$ 249,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="pacote_chegada_tranquila">Contratar agora</button>
+    </article>
+
+    <article class="package-card">
+      <span class="service-type">Pacote completo</span>
+      <h3>Pacote Mudança Completa</h3>
+      <p>Uma solução mais abrangente para organizar diferentes aspectos da sua mudança.</p>
+      <ul>
+        <li>Assistência Inicial</li>
+        <li>Planejamento da mudança</li>
+        <li>Pesquisa de moradia</li>
+        <li>Orientação sobre serviços locais</li>
+        <li>Plano de chegada</li>
+        <li>Duas sessões de acompanhamento</li>
+      </ul>
+      <div class="package-price">US$ 399,00 · Pagamento único</div>
+      <button class="button" type="button" data-product-key="pacote_mudanca_completa">Contratar agora</button>
+    </article>
+
+  </div>
+</div>
+  <div class="comparison" id="como-funciona">
+  <h3 style="margin:0 0 8px">Como será o atendimento</h3>
+  <div class="service-steps">
+    <div class="service-step">
+      <strong>1. Você explica</strong>
+      <p>Escolhe o assunto e descreve o que precisa, sem enviar dados sensíveis.</p>
+    </div>
+    <div class="service-step">
+      <strong>2. Analisamos</strong>
+      <p>A equipe verifica se a solicitação está dentro dos serviços oferecidos.</p>
+    </div>
+    <div class="service-step">
+      <strong>3. Você recebe a proposta</strong>
+      <p>Escopo, entregáveis, prazo e preço são apresentados antes da contratação.</p>
+    </div>
+    <div class="service-step">
+      <strong>4. Você decide</strong>
+      <p>O trabalho só começa após sua aprovação expressa e a confirmação das condições.</p>
+    </div>
+  </div>
+</div>
 <div class="request-box" id="solicitar-assistencia">
   <h3 style="margin:0 0 8px">Solicitar assistência</h3>
   <p class="calc-note">Selecione os serviços em que deseja receber ajuda. Nossa equipe analisará seu pedido e apresentará as condições antes de qualquer contratação.</p>
@@ -2890,51 +2979,54 @@ verifyStripePayment().catch(error => {
   alert("Não foi possível confirmar o pagamento. Entre em contato com o Viva USA.");
 });
 
-  document.getElementById("buyInitialAssistance")?.addEventListener("click", async () => {
-  const button = document.getElementById("buyInitialAssistance");
+  document.querySelectorAll("[data-product-key]").forEach(button => {
+  button.addEventListener("click", async () => {
+    const productKey = button.dataset.productKey;
+    const originalText = button.textContent;
 
-  try {
-    if (!supabaseClient) {
-      throw new Error("Conexão com o sistema indisponível.");
+    try {
+      if (!supabaseClient) {
+        throw new Error("Conexão com o sistema indisponível.");
+      }
+
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+
+      if (!sessionData.session) {
+        alert("Faça login no Viva USA para continuar com a contratação.");
+        return;
+      }
+
+      button.disabled = true;
+      button.textContent = "Preparando pagamento...";
+
+      const { data, error } = await supabaseClient.functions.invoke(
+        "create-checkout-session",
+        {
+          body: {
+            product_key: productKey
+          },
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            apikey: SUPABASE_PUBLISHABLE_KEY
+          }
+        }
+      );
+
+      if (error) throw error;
+
+      if (!data?.url) {
+        throw new Error("Não foi possível gerar o link de pagamento.");
+      }
+
+      window.location.href = data.url;
+
+    } catch (error) {
+      console.error("Erro no pagamento:", error);
+      alert(error.message || "Não foi possível iniciar o pagamento. Tente novamente.");
+      button.disabled = false;
+      button.textContent = originalText;
     }
-
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-
-    if (!sessionData.session) {
-      alert("Faça login no Viva USA para continuar com a contratação.");
-      return;
-    }
-
-    button.disabled = true;
-    button.textContent = "Preparando pagamento...";
-
-    const { data, error } = await supabaseClient.functions.invoke(
-  "create-checkout-session",
-  {
-   body: {
-  product_key: "assistencia_inicial"
-},
-   headers: {
-  Authorization: `Bearer ${sessionData.session.access_token}`,
-  apikey: SUPABASE_PUBLISHABLE_KEY
-}
-  }
-);
-
-    if (error) throw error;
-
-    if (!data?.url) {
-      throw new Error("Não foi possível gerar o link de pagamento.");
-    }
-
-    window.location.href = data.url;
-
-  } catch (error) {
-    console.error("Erro no pagamento:", error);
-    alert(error.message || "Não foi possível iniciar o pagamento. Tente novamente.");
-    button.disabled = false;
-    button.textContent = "Contratar agora";
-  }
+  });
 });
 </script>
 
