@@ -2911,7 +2911,9 @@ verifyStripePayment().catch(error => {
     const { data, error } = await supabaseClient.functions.invoke(
   "create-checkout-session",
   {
-    body: {},
+   body: {
+  product_key: "assistencia_inicial"
+},
    headers: {
   Authorization: `Bearer ${sessionData.session.access_token}`,
   apikey: SUPABASE_PUBLISHABLE_KEY
