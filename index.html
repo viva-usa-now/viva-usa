@@ -2561,6 +2561,19 @@ async function loadCloudData(user) {
       adminUsersCount = count || 0;
     }
 
+let adminPayments = [];
+
+if (isAdmin) {
+  const { data, error } = await supabaseClient
+    .from("payments")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  adminPayments = data || [];
+}
+
     let requestsQuery = supabaseClient
       .from("service_requests")
       .select("*");
@@ -2597,6 +2610,62 @@ const serviceRequests = serviceRequestsData || [];
     const profilesByUser = Object.fromEntries(
       adminProfiles.map(profile => [profile.user_id, profile])
     );
+
+if (isAdmin) {
+ const livePayments = adminPayments.filter(
+  payment => String(payment.stripe_checkout_session_id || "").startsWith("cs_live_")
+);
+
+const paidPayments = livePayments.filter(
+  payment => payment.status === "paid"
+);
+
+const refundedPayments = livePayments.filter(
+  payment => payment.status === "refunded"
+);
+
+  const totalReceived = paidPayments.reduce(
+    (sum, payment) => sum + Number(payment.amount_total || 0), 0
+  );
+
+  const currentMonth = new Date();
+  const monthlyReceived = paidPayments
+    .filter(payment => {
+      const date = new Date(payment.paid_at || payment.created_at);
+      return date.getMonth() === currentMonth.getMonth() &&
+             date.getFullYear() === currentMonth.getFullYear();
+    })
+    .reduce((sum, payment) => sum + Number(payment.amount_total || 0), 0);
+
+  const totalRefunds = refundedPayments.reduce(
+    (sum, payment) => sum + Number(payment.amount_total || 0), 0
+  );
+
+  const money = value => new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(value / 100);
+
+  document.getElementById("adminTotalReceived").textContent = money(totalReceived);
+  document.getElementById("adminMonthlyReceived").textContent = money(monthlyReceived);
+  document.getElementById("adminPaymentsCount").textContent = paidPayments.length;
+  document.getElementById("adminRefunds").textContent = money(totalRefunds);
+  const paymentsList = document.getElementById("adminPaymentsList");
+
+if (paidPayments.length === 0) {
+  paymentsList.innerHTML = "<p>Nenhum pagamento real aprovado até o momento.</p>";
+} else {
+  paymentsList.innerHTML = paidPayments.map(payment => `
+    <div class="dashboard-card">
+      <strong>${payment.product_name || "Serviço Viva USA"}</strong>
+      <p>Cliente: ${payment.customer_email || "Não informado"}</p>
+      <p>Valor: ${money(Number(payment.amount_total || 0))}</p>
+      <p>Status: ${payment.status}</p>
+      <p>Data: ${new Date(payment.paid_at || payment.created_at).toLocaleDateString("pt-BR")}</p>
+    </div>
+  `).join("");
+}
+}
 
     
     savedRentals = rentals.map(x => ({
